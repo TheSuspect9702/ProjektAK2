@@ -12,9 +12,9 @@ public:
 
     // Przeci¹¿anie operatorów arytmetycznych
     BCDNumber operator+(BCDNumber& other);
-    BCDNumber substract(BCDNumber& other);
-    BCDNumber multiply(BCDNumber& other);
-    BCDNumber divide(BCDNumber& other);
+    BCDNumber operator-(BCDNumber& other);
+    BCDNumber operator*(BCDNumber& other);
+    BCDNumber operator/(BCDNumber& other);
  
     std::string toString();
 private:
