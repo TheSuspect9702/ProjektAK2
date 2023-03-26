@@ -1,10 +1,10 @@
 ﻿#include "BCDLibrary.h"
 #include <iostream>
 using namespace std;
-
+BCDNumber repair("0110");
 int main()
 {//                22              15              
-    string a = "00100010", b = "0101"; // + 00110111
+    string a = "00100010", b = "00010101"; // + 00110111
                                            // - 00000111
     BCDNumber num1(a);
     BCDNumber num2(b);
@@ -69,13 +69,20 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
             // 0001 0101
 
             if (i < other.digits.size()) {
+               /* if (digits[digits.size() - i - 1] > other.digits[other.digits.size() - i - 1]) {
+                    carry = '1';
+                    sub = digits[digits.size() - i - 1] - other.digits[other.digits.size() - i - 1] + carry + 48;
+                }
+                else {
+                    carry = '0';
+                    sub = digits[digits.size() - i - 1] - other.digits[other.digits.size() - i - 1] + 48;
+                }*/
                 sub = digits[digits.size() - i - 1] - other.digits[other.digits.size() - i - 1] - carry + 96; // + 48 - carry + 48
-                cout << "i: " << i << ", bit1: " << digits[digits.size() - i - 1] << ", bit2: " << other.digits[other.digits.size() - i - 1] << ", carry: " << carry << ", sub: " << sub << endl;
-
+                cout << "i: " << i << ", bit1: " << digits[digits.size() - i - 1] << ", bit2: " << other.digits[other.digits.size() - i - 1] 
+                    << ", carry: " << carry << ", sub: " << sub << endl;
             }
             else {
                 sub = digits[digits.size() - i - 1] - carry + 96;
-                carry = '0';
             }
             if(sub < 48){
                 carry = '1';
@@ -84,8 +91,20 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
             else {
                 carry = '0';
             }
-            //cout <<"i: " << i << ", bit1: " << digits[digits.size() - i - 1] << ", bit2: " << other.digits[other.digits.size() - i - 1] << ", carry: " << carry << ", sub: " << sub << endl;
             result.digits.insert(result.digits.begin(), sub);
+            //Dodanie korekty przy zapozyczeniu z kolejnej grupy bitow
+            if (i % 3 == 0 && carry == '1' && i != 0) {
+                int x = 0;
+                string str;
+                for (int j = i - 3; j <= i; j++)
+                    str.push_back(result.digits[j]);
+                BCDNumber temp(str);
+                BCDNumber corrected = temp - repair;
+                for (int j = i - 3; j <= i; j++) {
+                    result.digits[j] = corrected.digits[x];
+                    x++;
+                }
+            }
         }
     }
     else cout << "No nie da sie" << endl;
