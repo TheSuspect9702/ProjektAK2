@@ -4,6 +4,8 @@ using namespace std;
 
 int main()
 {
+    cout << "ebeebe";
+    cout << " jestes kokksem";
     string a = "0001",b = "0010";
     BCDNumber num1(a);
     BCDNumber num2(b);
