@@ -4,7 +4,7 @@ using namespace std;
 
 int main()
 {
-    string a = "0001", b = "00100101"; //00100110
+    string a = "10000001", b = "10100101"; //00100110
     BCDNumber num1(a);
     BCDNumber num2(b);
     BCDNumber sum = num1 + num2;
@@ -38,85 +38,14 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
         else
             carry = '0';
         cout << "i: " << i << ", carry: " << carry << ", sum: " << sum << endl;
-      
-
-
-        //if (i < digits.size() && i < other.digits.size()) {
-        //    if (sum == '1') {
-        //        if (other.digits[other.digits.size() - 1 - i] == '1' && digits[digits.size() - 1 - i] == '1') {
-        //            sum = '1';
-        //            carry = '1';
-        //        }
-        //        else if (other.digits[other.digits.size() - 1 - i] == '1' || digits[digits.size() - 1 - i] == '1') {
-        //            sum = '0';
-        //            carry = '1';
-        //        }
-        //        else {
-        //            sum = '1';
-        //            carry = '0';
-        //        }
-        //    }
-        //    else {
-        //        if (other.digits[other.digits.size() - 1 - i] == '1' && digits[digits.size() - 1 - i] == '1') {
-        //            sum = '0';
-        //            carry = '1';
-        //        }
-        //        else if (other.digits[other.digits.size() - 1 - i] == '1' || digits[digits.size() - 1 - i] == '1') {
-        //            sum = '1';
-        //            carry = '0';
-        //        }
-        //        else {
-        //            sum = '0';
-        //            carry = '0';
-        //        }
-        //    }
-        //}
-        //else if (i < digits.size()) {
-        //    if (sum == '1') {
-        //        if (digits[digits.size() - 1 - i] == '1') {
-        //            sum = '0';
-        //            carry = '1';
-        //        }
-        //        else {
-        //            sum = '1';
-        //            carry = '0';
-        //        }
-        //    }
-        //    else {
-        //        if (digits[digits.size() - 1 - i] == '1') {
-        //            sum = '1';
-        //            carry = '0';
-        //        }
-        //        else {
-        //            sum = '0';
-        //            carry = '0';
-        //        }
-        //    }
-        //}
-        //else  {
-        //    if (sum == '1') {
-        //        if (other.digits[other.digits.size() - 1 - i] == '1') {
-        //            sum = '0';
-        //            carry = '1';
-        //        }
-        //        else {
-        //            sum = '1';
-        //            carry = '0';
-        //        }
-        //    }
-        //    else {
-        //        if (other.digits[other.digits.size() - 1 - i] == '1') {
-        //            sum = '1';
-        //            carry = '0';
-        //        }
-        //        else {
-        //            sum = '0';
-        //            carry = '0';
-        //        }
-        //    }
-        //}
-        //result.digits.insert(result.digits.begin(), sum);
-        //cout << "i: " << i << ", carry: " << carry << ", sum: " << sum << endl;
+    }
+    if (carry == '1') {
+        for (int i = 0; i <= 3; i++) {
+            if (i == 0)
+                result.digits.insert(result.digits.begin(), 49);
+            else 
+                result.digits.insert(result.digits.begin(), 48);
+        }
     }
     return result;
 }
