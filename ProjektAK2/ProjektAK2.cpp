@@ -22,20 +22,48 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
         unsigned char sum = carry;
         //      0010
         // 0101 0001
-        if (i < digits.size()) 
-            sum += digits[digits.size() - 1 - i];
-        if (i < other.digits.size()) 
+       /* if (i < digits.size())
             sum += other.digits[other.digits.size() - 1 - i];
-        
+        if (i < other.digits.size())
+            sum += other.digits[other.digits.size() - 1 - i];
+
         result.digits.insert(result.digits.begin(), sum % 2 + 48);
-        cout << "i: " << i << ", carry: " << (int)carry << ", sum: " << int(sum) << endl;
-        carry = sum/2;
+        cout << "i: " << i << ", carry: " << carry << ", sum: " << sum << endl;
+        carry = sum/2;*/
 
+        cout << "123123";
 
-        /*if (i < digits.size() && i < other.digits.size()) {
-            sum += digits[digits.size() - i - 1] + other.digits[other.digits.size() - i - 1];
-            
-        }*/
+        if (i < digits.size() && i < other.digits.size()) {
+            if (sum == '1') {
+                if (other.digits[other.digits.size() - 1 - i] == '1' && other.digits[other.digits.size() - 1 - i] == '1') {
+                    sum = '1';
+                    carry = '1';
+                }
+                else if (other.digits[other.digits.size() - 1 - i] == '1' && other.digits[other.digits.size() - 1 - i] == '1') {
+                    sum = '0';
+                    carry = '1';
+                }
+                else {
+                    sum = '1';
+                    carry = '0';
+                }
+            }
+            else {
+                if (other.digits[other.digits.size() - 1 - i] == '1' && other.digits[other.digits.size() - 1 - i] == '1') {
+                    sum = '0';
+                    carry = '1';
+                }
+                else if (other.digits[other.digits.size() - 1 - i] == '1' && other.digits[other.digits.size() - 1 - i] == '1') {
+                    sum = '1';
+                    carry = '0';
+                }
+                else {
+                    sum = '0';
+                    carry = '0';
+                }
+            }
+        }
+        cout << "i: " << i << ", carry: " << carry << ", sum: " << sum << endl;
     }
     return result;
 }
