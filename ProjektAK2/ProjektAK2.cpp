@@ -4,7 +4,7 @@ using namespace std;
 
 int main()
 {//                22              15              
-    string a = "00100010", b = "00010101"; // + 00110111
+    string a = "00100010", b = "0101"; // + 00110111
                                            // - 00000111
     BCDNumber num1(a);
     BCDNumber num2(b);
@@ -64,12 +64,18 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
 
     if (digits.size() >= other.digits.size()) {
         for (int i = 0; i < newSize; i++) {
-            
-            // 1011 0101
-            // 0010 1100
+
+            // 0010 0010
+            // 0001 0101
 
             if (i < other.digits.size()) {
                 sub = digits[digits.size() - i - 1] - other.digits[other.digits.size() - i - 1] - carry + 96; // + 48 - carry + 48
+                cout << "i: " << i << ", bit1: " << digits[digits.size() - i - 1] << ", bit2: " << other.digits[other.digits.size() - i - 1] << ", carry: " << carry << ", sub: " << sub << endl;
+
+            }
+            else {
+                sub = digits[digits.size() - i - 1] - carry + 96;
+                carry = '0';
             }
             if(sub < 48){
                 carry = '1';
@@ -78,7 +84,7 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
             else {
                 carry = '0';
             }
-            cout <<"i: " << i << ", carry: " << carry << ", sub: " << sub << endl;
+            //cout <<"i: " << i << ", bit1: " << digits[digits.size() - i - 1] << ", bit2: " << other.digits[other.digits.size() - i - 1] << ", carry: " << carry << ", sub: " << sub << endl;
             result.digits.insert(result.digits.begin(), sub);
         }
     }
