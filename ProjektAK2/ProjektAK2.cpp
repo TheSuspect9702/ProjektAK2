@@ -4,7 +4,7 @@ using namespace std;
 
 int main()
 {
-    string a = "0001",b = "0010 0101"; //00100110
+    string a = "0001",b = "00100101"; //00100110
     BCDNumber num1(a);
     BCDNumber num2(b);
     BCDNumber sum = num1 + num2;
@@ -23,8 +23,10 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
         //      0010
         // 0101 0001
         if (i < digits.size()) sum += digits[digits.size() - 1 - i];
-        if (i < other.digits.size()) sum += other.digits[other.digits.size() - 1 - i];
-        cout << digits[digits.size() - 1 - i];
+        if (i < other.digits.size()) {
+            sum += other.digits[other.digits.size() - 1 - i];
+            cout << other.digits[other.digits.size() - 1 - i];
+        }
         result.digits.insert(result.digits.begin(), sum % 2 + 48);
         cout << "i: " << i << ", carry: " << (int)carry << ", sum: " << int(sum) << endl;
         carry = sum/2;
