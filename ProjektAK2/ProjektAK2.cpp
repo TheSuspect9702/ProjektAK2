@@ -22,11 +22,11 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
         unsigned char sum = carry;
         //      0010
         // 0101 0001
-        if (i < digits.size()) sum += digits[digits.size() - 1 - i];
-        if (i < other.digits.size()) {
+        if (i < digits.size()) 
+            sum += digits[digits.size() - 1 - i];
+        if (i < other.digits.size()) 
             sum += other.digits[other.digits.size() - 1 - i];
-            cout << other.digits[other.digits.size() - 1 - i];
-        }
+        
         result.digits.insert(result.digits.begin(), sum % 2 + 48);
         cout << "i: " << i << ", carry: " << (int)carry << ", sum: " << int(sum) << endl;
         carry = sum/2;
