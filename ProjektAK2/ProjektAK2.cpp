@@ -31,7 +31,6 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
         cout << "i: " << i << ", carry: " << carry << ", sum: " << sum << endl;
         carry = sum/2;*/
 
-        cout << "123123";
 
         if (i < digits.size() && i < other.digits.size()) {
             if (sum == '1') {
