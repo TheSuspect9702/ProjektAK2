@@ -4,7 +4,7 @@ using namespace std;
 BCDNumber repair("0110");
 int main()
 {//                22              15              
-    string a = "00010000", b = "00000001"; // + 00110111
+    string a = "0111", b = "1000"; // + 00110111
                                            // - 00000111
     BCDNumber num1(a);
     BCDNumber num2(b);
@@ -22,31 +22,50 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
     unsigned char carry = '0';
     unsigned char sum;
     for (int i = 0; i < newSize; i++) {
-        cout << "i: " << i << ", carry: " << int(carry) << "      ";
         sum = carry;
     
-        if (i < digits.size()) {
+        if (i < digits.size()) 
             sum += digits[digits.size() - 1 - i];
-            cout << "suma: " << int(sum) << " digit: " << digits[digits.size() - 1 - i] << "   ";
-        }
-        if (i < other.digits.size()) {
+        if (i < other.digits.size()) 
             sum += other.digits[other.digits.size() - 1 - i];
-            cout << "suma: " << int(sum) << " digit: " << other.digits[other.digits.size() - 1 - i] << "   ";
-        }
-        cout << "co wpisuje " << int(sum % 2 + 48);
         result.digits.insert(result.digits.begin(), sum % 2 + 48);
         if (int(sum) - 145 > 0)
             carry = '1';
         else
             carry = '0';
-        cout << "i: " << i << ", carry: " << carry << ", sum: " << sum << endl;
+        if (i % 4 == 3 && carry == '1') {
+            int x = 0;
+            string str;
+            for (int j = i - 3; j <= i; j++)
+                str.push_back(result.digits[j]);
+            BCDNumber temp(str);
+            BCDNumber corrected = temp + repair;
+            for (int j = i - 3; j <= i; j++) {
+                result.digits[j] = corrected.digits[x];
+                x++;
+            }
+            for (int i = 0; i <= 3; i++) {
+                if (i == 0)
+                    result.digits.insert(result.digits.begin(), 49);
+                else
+                    result.digits.insert(result.digits.begin(), 48);
+            }
+        }
     }
-    if (carry == '1') {
-        for (int i = 0; i <= 3; i++) {
-            if (i == 0)
-                result.digits.insert(result.digits.begin(), 49);
-            else 
-                result.digits.insert(result.digits.begin(), 48);
+    for (int i = 0; i < newSize; i++) {
+        if (i % 4 == 3) {
+            if (result.digits[i] == '1' && (result.digits[i - 1] == '1' || result.digits[i - 2] == '1')) {
+                int x = 0;
+                string str;
+                for (int j = i - 3; j <= i; j++)
+                    str.push_back(result.digits[j]);
+                BCDNumber temp(str);
+                BCDNumber corrected = temp + repair;
+                for (int j = i - 3; j <= i; j++) {
+                    result.digits[j] = corrected.digits[x];
+                    x++;
+                }
+            }
         }
     }
     return result;
