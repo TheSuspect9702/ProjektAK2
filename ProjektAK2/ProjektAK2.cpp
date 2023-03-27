@@ -4,7 +4,7 @@ using namespace std;
 BCDNumber repair("0110");
 int main()
 {//                22              15              
-    string a = "00100010", b = "00010101"; // + 00110111
+    string a = "00010000", b = "00000001"; // + 00110111
                                            // - 00000111
     BCDNumber num1(a);
     BCDNumber num2(b);
@@ -61,7 +61,7 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
     int newSize = max(digits.size(), other.digits.size());
     unsigned char carry = '0'; //zapozyczenie
     unsigned char sub = '0'; //wynik poszczegolnych odejmowan
-
+    int b = 0, c = 0;
     if (digits.size() >= other.digits.size()) {
         for (int i = 0; i < newSize; i++) {
 
@@ -69,31 +69,25 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
             // 0001 0101
 
             if (i < other.digits.size()) {
-               /* if (digits[digits.size() - i - 1] > other.digits[other.digits.size() - i - 1]) {
-                    carry = '1';
-                    sub = digits[digits.size() - i - 1] - other.digits[other.digits.size() - i - 1] + carry + 48;
-                }
-                else {
-                    carry = '0';
-                    sub = digits[digits.size() - i - 1] - other.digits[other.digits.size() - i - 1] + 48;
-                }*/
-                sub = digits[digits.size() - i - 1] - other.digits[other.digits.size() - i - 1] - carry + 96; // + 48 - carry + 48
-                cout << "i: " << i << ", bit1: " << digits[digits.size() - i - 1] << ", bit2: " << other.digits[other.digits.size() - i - 1] 
-                    << ", carry: " << carry << ", sub: " << sub << endl;
+                sub = digits[digits.size() - 1 - i] - b - other.digits[other.digits.size() - i - 1] + 48;
+
+                /*cout << "c: " << c << ", b: " << b << ", sub: " << sub << endl;*/
             }
             else {
-                sub = digits[digits.size() - i - 1] - carry + 96;
+                sub = digits[digits.size() - 1 - i] - b + 48;
             }
-            if(sub < 48){
-                carry = '1';
-                sub = '1';
+            if (sub < 48) {
+                sub += 2;
+                b = 1;
             }
             else {
-                carry = '0';
+                b = 0;
             }
+
+
             result.digits.insert(result.digits.begin(), sub);
             //Dodanie korekty przy zapozyczeniu z kolejnej grupy bitow
-            if (i % 3 == 0 && carry == '1' && i != 0) {
+            if (i % 4 == 3 && b == 1) {
                 int x = 0;
                 string str;
                 for (int j = i - 3; j <= i; j++)
