@@ -4,7 +4,7 @@ using namespace std;
 BCDNumber repair("0110");
 int main()
 {//                22              15              
-    string a = "0111", b = "1000"; // + 00110111
+    string a = "10001001", b = "10000111"; // + 00110111
                                            // - 00000111
     BCDNumber num1(a);
     BCDNumber num2(b);
@@ -17,6 +17,10 @@ int main()
 }
 
 BCDNumber BCDNumber::operator+(BCDNumber& other) {
+     if (digits[digits.size()-1] == 0)
+            digits.erase(digits.end()-1);
+     if (other.digits[other.digits.size()-1] == 0)
+         other.digits.erase(other.digits.end()-1);
     BCDNumber result;
     int newSize = max(digits.size(), other.digits.size());
     unsigned char carry = '0';
@@ -34,25 +38,36 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
         else
             carry = '0';
         if (i % 4 == 3 && carry == '1') {
+           /* if (result.digits[result.digits.size() - 1] == 0)
+                result.digits.erase(result.digits.end()-1);*/
             int x = 0;
             string str;
-            for (int j = i - 3; j <= i; j++)
+            /*for (int j = i - 3; j <= i; j++)
                 str.push_back(result.digits[j]);
             BCDNumber temp(str);
             BCDNumber corrected = temp + repair;
             for (int j = i - 3; j <= i; j++) {
                 result.digits[j] = corrected.digits[x];
                 x++;
-            }
-            for (int i = 0; i <= 3; i++) {
-                if (i == 0)
+                10001001 + 10000111
+            }*/
+            BCDNumber temp(result.toString());
+            for (int j = i - 3; j > 0; j--)
+                repair.digits.insert(repair.digits.end(), 48);
+            result = temp + repair;
+            result.digits.erase(result.digits.end() - 1);
+            if (newSize < result.digits.size()) 
+                newSize = result.digits.size();
+            if (i == newSize -1)
+            for (int k = 0; k <= 3; k++) {
+                if (k == 0)
                     result.digits.insert(result.digits.begin(), 49);
                 else
                     result.digits.insert(result.digits.begin(), 48);
             }
         }
     }
-    for (int i = 0; i < newSize; i++) {
+   /* for (int i = 0; i < newSize; i++) {
         if (i % 4 == 3) {
             if (result.digits[i] == '1' && (result.digits[i - 1] == '1' || result.digits[i - 2] == '1')) {
                 int x = 0;
@@ -67,7 +82,7 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 }
             }
         }
-    }
+    }*/
     return result;
 }
 // Konstruktor, tworzący BCDNumber o wartości 0
@@ -93,7 +108,7 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
                 /*cout << "c: " << c << ", b: " << b << ", sub: " << sub << endl;*/
             }
             else {
-                sub = digits[digits.size() - 1 - i] - b + 48;
+                sub = digits[digits.size() - 1 - i] - b;
             }
             if (sub < 48) {
                 sub += 2;
