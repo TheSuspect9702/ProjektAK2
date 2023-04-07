@@ -130,11 +130,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BCDNumber.cpp" />
     <ClCompile Include="BCDNumberTest.cpp" />
     <ClCompile Include="ProjektAK2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BCDLibrary.h" />
+    <ClInclude Include="BCDNumber.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

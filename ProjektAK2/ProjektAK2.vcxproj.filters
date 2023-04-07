@@ -24,10 +24,13 @@
     <ClCompile Include="BCDNumberTest.cpp">
       <Filter>test</Filter>
     </ClCompile>
+    <ClCompile Include="BCDNumber.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BCDLibrary.h">
-      <Filter>Pliki źródłowe</Filter>
+    <ClInclude Include="BCDNumber.h">
+      <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
