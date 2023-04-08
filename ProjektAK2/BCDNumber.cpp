@@ -12,7 +12,7 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
     unsigned char carry = 0;
     unsigned carryInside = 0;
     int k;
-    for (int i = 0; i < newSize; i++) {
+    for (int i = 0; i <newSize; i++) {
         k = 0;
         sum = 0;
         if (digits.size() > i && other.digits.size() > i) {
@@ -23,7 +23,7 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 }
                 temp = 0;
                 temp1 = 0;
-                temp = ((digits[i]%2) ? 1 : 0);
+                temp = ((digits[i] % 2) ? 1 : 0);
                 digits[i] -= (temp + digits[i] / 2);
                 temp1 = ((other.digits[i] % 2) ? 1 : 0);
                 other.digits[i] -= (temp1 + other.digits[i] / 2);       // kolejne dzielenia liczb 
@@ -53,7 +53,65 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 k++;
             }
             result.digits.push_back(sum);
-           // sum = digits[digits.size()- i - 1] ^ other.digits[other.digits.size() - i -1];
+            // sum = digits[digits.size()- i - 1] ^ other.digits[other.digits.size() - i -1];
+        }
+        else if (other.digits.size() <= i) {
+            for (int j = 7; j >= 0; j--) {
+                if (j == 7) {
+                    carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
+                    carry = 0;
+                }
+                temp = 0;
+                temp = ((digits[i] % 2) ? 1 : 0);
+                digits[i] -= (temp + digits[i] / 2);
+                if (temp) {
+                    if (carryInside) {
+                        sum += 0;
+                        carryInside = 1;
+                    }
+                    else
+                        sum += temp * pow(2, k);
+                }
+                else {
+                    if (carryInside)
+                        sum += carryInside * pow(2, k);
+                    else
+                        sum += 0;
+                }
+                if (j == 0)
+                    carry = carryInside;
+                k++;
+            }
+            result.digits.push_back(sum);
+        }
+        else if (digits.size() <= i) {
+            for (int j = 7; j >= 0; j--) {
+                if (j == 7) {
+                    carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
+                    carry = 0;
+                }
+                temp = 0;
+                temp = ((other.digits[i] % 2) ? 1 : 0);
+                other.digits[i] -= (temp + other.digits[i] / 2);
+                if (temp) {
+                    if (carryInside) {
+                        sum += 0;
+                        carryInside = 1;
+                    }
+                    else
+                        sum += temp * pow(2, k);
+                }
+                else {
+                    if (carryInside)
+                        sum += carryInside * pow(2, k);
+                    else
+                        sum += 0;
+                }
+                if (j == 0)
+                    carry = carryInside;
+                k++;
+            }
+            result.digits.push_back(sum);
         }
     }
     return result;
@@ -123,7 +181,7 @@ BCDNumber::BCDNumber(string str) {
         y = x / 10;
         z = x % 10;
         move = (y << 4) | z;
-        digits.push_back(move);
+        digits.insert(digits.begin(),move);
     }
 }
 
