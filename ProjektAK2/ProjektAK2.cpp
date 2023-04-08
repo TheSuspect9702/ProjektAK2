@@ -3,7 +3,7 @@
 using namespace std;
 int main()
 {//                22              15              
-    string a = "1261", b = "772515"; // + 00110111
+    string a = "25", b = "99"; // + 00110111
                                            // - 00000111
     BCDNumber num1(a);
     BCDNumber num2(b);

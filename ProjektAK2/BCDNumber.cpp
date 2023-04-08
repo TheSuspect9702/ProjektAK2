@@ -12,7 +12,7 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
     unsigned char carry = 0;
     unsigned carryInside = 0;
     int k;
-    for (int i = 0; i <newSize; i++) {
+    for (int i = 0; i < newSize; i++) {
         k = 0;
         sum = 0;
         if (digits.size() > i && other.digits.size() > i) {
@@ -23,6 +23,9 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 }
                 temp = 0;
                 temp1 = 0;
+                if (j == 5) {
+                    cout << "ELO";
+                }
                 temp = ((digits[i] % 2) ? 1 : 0);
                 digits[i] -= (temp + digits[i] / 2);
                 temp1 = ((other.digits[i] % 2) ? 1 : 0);
@@ -48,19 +51,29 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                     else
                         sum += ((temp > temp1) ? temp : temp1) * pow(2, k);
                 }
-                if (j == 0)
-                    carry = carryInside;
                 k++;
-                if (j == 4) {
-                    if (((sum & 0x30) == (0x20 || 0x40 || 0x60)) || ((sum & 0x03) == (0x02 || 0x04 || 0x06))) {
-                        
- 
+                if (j == 4) 
+                    if (sum > 9) {
+                        sum += 6;
+                        if (sum < 16)
+                            carryInside = 1;
+                        else
+                            carryInside = 0;
                     }
+                if (j == 0) {
+                    unsigned char tempSum = (sum >> 4);
+                    unsigned char tempSum1 = sum - tempSum*(pow(2, 4));
+                    if (tempSum > 9) {
+                        tempSum += 6;
+                        sum = (tempSum << 4) | tempSum1;
+                        carryInside = 1;
+                    }
+                    carry = carryInside;
                 }
             }
             result.digits.push_back(sum);
         }
-        else if (other.digits.size() <= i) { //dodawanie jesli pierwszy wyraz jest d³u¿szy od drugiego
+        else if (digits.size() > i) { //dodawanie jesli pierwszy wyraz jest d³u¿szy od drugiego
             for (int j = 7; j >= 0; j--) {
                 if (j == 7) {
                     carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
@@ -72,24 +85,41 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 if (temp) {
                     if (carryInside) {
                         sum += 0;
-                        carryInside = 1;
                     }
                     else
                         sum += temp * pow(2, k);
                 }
                 else {
-                    if (carryInside)
+                    if (carryInside) {
                         sum += carryInside * pow(2, k);
+                        carryInside = 0;
+                    }
                     else
                         sum += 0;
                 }
-                if (j == 0)
-                    carry = carryInside;
                 k++;
+                if (j == 4)
+                    if (sum > 9) {
+                        sum += 6;
+                        if (sum < 16)
+                            carryInside = 1;
+                        else
+                            carryInside = 0;
+                    }
+                if (j == 0) {
+                    unsigned char tempSum = (sum >> 4);
+                    unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
+                    if (tempSum > 9) {
+                        tempSum += 6;
+                        sum = (tempSum << 4) | tempSum1;
+                        carryInside = 1;
+                    }
+                    carry = carryInside;
+                }
             }
             result.digits.push_back(sum);
         }
-        else if (digits.size() <= i) { // dodawanie kiedy drugi wyraz jest d³u¿szy
+        else if (other.digits.size() > i) { // dodawanie kiedy drugi wyraz jest d³u¿szy
             for (int j = 7; j >= 0; j--) {
                 if (j == 7) {
                     carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
@@ -101,23 +131,44 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 if (temp) {
                     if (carryInside) {
                         sum += 0;
-                        carryInside = 1;
                     }
                     else
                         sum += temp * pow(2, k);
                 }
                 else {
-                    if (carryInside)
+                    if (carryInside) {
                         sum += carryInside * pow(2, k);
+                        carryInside = 0;
+                    }
                     else
                         sum += 0;
                 }
-                if (j == 0)
-                    carry = carryInside;
                 k++;
+                if (j == 4)
+                    if (sum > 9) {
+                        sum += 6;
+                        if (sum < 16)
+                            carryInside = 1;
+                        else
+                            carryInside = 0;
+                    }
+                if (j == 0) {
+                    unsigned char tempSum = (sum >> 4);
+                    unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
+                    if (tempSum > 9) {
+                        tempSum += 6;
+                        sum = (tempSum << 4) | tempSum1;
+                        carryInside = 1;
+                    }
+                    carry = carryInside;
+                }
             }
             result.digits.push_back(sum);
         }
+    }
+    if (carry == 1) {
+        sum = 1;
+        result.digits.push_back(sum);
     }
     return result;
 }
@@ -125,57 +176,7 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
 BCDNumber::BCDNumber() {
     digits.push_back(0);
 }
-BCDNumber BCDNumber::operator-(BCDNumber& other) {
-    BCDNumber repair("0110");
-    BCDNumber result;
-    int newSize = max(digits.size(), other.digits.size());
-    unsigned char carry = '0'; //zapozyczenie
-    unsigned char sub = '0'; //wynik poszczegolnych odejmowan
-    int b = 0, c = 0;
-    if (digits.size() >= other.digits.size()) {
-        for (int i = 0; i < newSize; i++) {
 
-            // 0010 0010
-            // 0001 0101
-
-            if (i < other.digits.size()) {
-                sub = digits[digits.size() - 1 - i] - b - other.digits[other.digits.size() - i - 1] + 48;
-
-                /*cout << "c: " << c << ", b: " << b << ", sub: " << sub << endl;*/
-            }
-            else {
-                sub = digits[digits.size() - 1 - i] - b;
-            }
-            if (sub < 48) {
-                sub += 2;
-                b = 1;
-            }
-            else {
-                b = 0;
-            }
-
-
-            result.digits.insert(result.digits.begin(), sub);
-            //Dodanie korekty przy zapozyczeniu z kolejnej grupy bitow
-            if (i % 4 == 3 && b == 1) {
-                int x = 0;
-                string str;
-                for (int j = i - 3; j <= i; j++)
-                    str.push_back(result.digits[j]);
-                BCDNumber temp(str);
-                BCDNumber corrected = temp - repair;
-                for (int j = i - 3; j <= i; j++) {
-                    result.digits[j] = corrected.digits[x];
-                    x++;
-                }
-            }
-        }
-    }
-    else cout << "No nie da sie" << endl;
-
-    return result;
-
-}
 BCDNumber::BCDNumber(string str) {
     int x;
     int y;
@@ -206,3 +207,55 @@ string BCDNumber::toString() {
     }
     return str;
 }
+
+//BCDNumber BCDNumber::operator-(BCDNumber& other) {
+//    BCDNumber repair("0110");
+//    BCDNumber result;
+//    int newSize = max(digits.size(), other.digits.size());
+//    unsigned char carry = '0'; //zapozyczenie
+//    unsigned char sub = '0'; //wynik poszczegolnych odejmowan
+//    int b = 0, c = 0;
+//    if (digits.size() >= other.digits.size()) {
+//        for (int i = 0; i < newSize; i++) {
+//
+//            // 0010 0010
+//            // 0001 0101
+//
+//            if (i < other.digits.size()) {
+//                sub = digits[digits.size() - 1 - i] - b - other.digits[other.digits.size() - i - 1] + 48;
+//
+//                /*cout << "c: " << c << ", b: " << b << ", sub: " << sub << endl;*/
+//            }
+//            else {
+//                sub = digits[digits.size() - 1 - i] - b;
+//            }
+//            if (sub < 48) {
+//                sub += 2;
+//                b = 1;
+//            }
+//            else {
+//                b = 0;
+//            }
+//
+//
+//            result.digits.insert(result.digits.begin(), sub);
+//            //Dodanie korekty przy zapozyczeniu z kolejnej grupy bitow
+//            if (i % 4 == 3 && b == 1) {
+//                int x = 0;
+//                string str;
+//                for (int j = i - 3; j <= i; j++)
+//                    str.push_back(result.digits[j]);
+//                BCDNumber temp(str);
+//                BCDNumber corrected = temp - repair;
+//                for (int j = i - 3; j <= i; j++) {
+//                    result.digits[j] = corrected.digits[x];
+//                    x++;
+//                }
+//            }
+//        }
+//    }
+//    else cout << "No nie da sie" << endl;
+//
+//    return result;
+//
+//}
