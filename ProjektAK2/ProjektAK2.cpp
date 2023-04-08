@@ -8,9 +8,9 @@ int main()
     BCDNumber num1(a);
     BCDNumber num2(b);
     BCDNumber sum = num1 + num2;
-    BCDNumber substraction = num1 - num2;
+  //  BCDNumber substraction = num1 - num2;
     cout << num1.toString() << " + " << num2.toString() << " = " << sum.toString() << std::endl;
-    cout << num1.toString() << " - " << num2.toString() << " = " << substraction.toString() << std::endl;
+   // cout << num1.toString() << " - " << num2.toString() << " = " << substraction.toString() << std::endl;
 
     return 0;
 }

@@ -5,10 +5,56 @@ using namespace std;
 
 BCDNumber BCDNumber::operator+(BCDNumber& other) {
     BCDNumber result;
+    unsigned char sum;
+    unsigned char temp;
+    unsigned char temp1;
     int newSize = max(digits.size(), other.digits.size());
-    unsigned char carry = 1;
+    unsigned char carry = 0;
+    unsigned carryInside = 0;
+    int k;
     for (int i = 0; i < newSize; i++) {
-
+        k = 0;
+        sum = 0;
+        if (digits.size() > i && other.digits.size() > i) {
+            for (int j = 7; j >= 0; j--) {
+                if (j == 7) {
+                    carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
+                    carry = 0;
+                }
+                temp = 0;
+                temp1 = 0;
+                temp = ((digits[i]%2) ? 1 : 0);
+                digits[i] -= (temp + digits[i] / 2);
+                temp1 = ((other.digits[i] % 2) ? 1 : 0);
+                other.digits[i] -= (temp1 + other.digits[i] / 2);       // kolejne dzielenia liczb 
+                if (temp == temp1 && temp != 0) {
+                    if (carryInside)
+                        sum += carryInside * pow(2, k);
+                    else
+                        sum += 0;
+                    carryInside = 1;
+                }
+                else if (temp == temp1) {
+                    if (carryInside) {
+                        sum += carryInside * pow(2, k);
+                        carryInside = 0;
+                    }
+                    else
+                        sum += 0;
+                }
+                else {
+                    if (carryInside)
+                        sum += 0;
+                    else
+                        sum += ((temp > temp1) ? temp : temp1) * pow(2, k);
+                }
+                if (j == 0)
+                    carry = carryInside;
+                k++;
+            }
+            result.digits.push_back(sum);
+           // sum = digits[digits.size()- i - 1] ^ other.digits[other.digits.size() - i -1];
+        }
     }
     return result;
 }
@@ -86,10 +132,14 @@ BCDNumber::BCDNumber(string str) {
 string BCDNumber::toString() {
     string str;
     str.reserve(digits.size());
-
-    for (unsigned char digit : digits) {
-        str.push_back(digit);
+    int x;
+    int y;
+    digits.erase(digits.begin());
+    for (char digit : digits) { //poprawione wypisywanie liczb 
+        x = (digit >> 4) & 0x0F;
+        y = digit & 0x0F;
+        str.insert(str.begin(), y + '0');
+        str.insert(str.begin(), x + '0');
     }
-
     return str;
 }
