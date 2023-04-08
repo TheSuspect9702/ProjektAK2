@@ -51,11 +51,16 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 if (j == 0)
                     carry = carryInside;
                 k++;
+                if (j == 4) {
+                    if (((sum & 0x30) == (0x20 || 0x40 || 0x60)) || ((sum & 0x03) == (0x02 || 0x04 || 0x06))) {
+                        
+ 
+                    }
+                }
             }
             result.digits.push_back(sum);
-            // sum = digits[digits.size()- i - 1] ^ other.digits[other.digits.size() - i -1];
         }
-        else if (other.digits.size() <= i) {
+        else if (other.digits.size() <= i) { //dodawanie jesli pierwszy wyraz jest d³u¿szy od drugiego
             for (int j = 7; j >= 0; j--) {
                 if (j == 7) {
                     carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
@@ -84,7 +89,7 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
             }
             result.digits.push_back(sum);
         }
-        else if (digits.size() <= i) {
+        else if (digits.size() <= i) { // dodawanie kiedy drugi wyraz jest d³u¿szy
             for (int j = 7; j >= 0; j--) {
                 if (j == 7) {
                     carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
