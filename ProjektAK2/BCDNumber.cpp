@@ -8,6 +8,7 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
     unsigned char sum;
     unsigned char temp;
     unsigned char temp1;
+    unsigned char holdDigits, holdOtherDigits;
     int newSize = max(digits.size(), other.digits.size());
     unsigned char carry = 0;
     unsigned carryInside = 0;
@@ -16,6 +17,8 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
         k = 0;
         sum = 0;
         if (digits.size() > i && other.digits.size() > i) {
+            holdDigits = digits[i];
+            holdOtherDigits = other.digits[i];
             for (int j = 7; j >= 0; j--) {
                 if (j == 7) {
                     carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
@@ -23,9 +26,6 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 }
                 temp = 0;
                 temp1 = 0;
-                if (j == 5) {
-                    cout << "ELO";
-                }
                 temp = ((digits[i] % 2) ? 1 : 0);
                 digits[i] -= (temp + digits[i] / 2);
                 temp1 = ((other.digits[i] % 2) ? 1 : 0);
@@ -72,8 +72,11 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 }
             }
             result.digits.push_back(sum);
+            digits[i] = holdDigits;
+            other.digits[i] = holdOtherDigits;
         }
         else if (digits.size() > i) { //dodawanie jesli pierwszy wyraz jest d³u¿szy od drugiego
+            holdDigits = digits[i];
             for (int j = 7; j >= 0; j--) {
                 if (j == 7) {
                     carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
@@ -118,8 +121,10 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 }
             }
             result.digits.push_back(sum);
+            digits[i] = holdDigits;
         }
         else if (other.digits.size() > i) { // dodawanie kiedy drugi wyraz jest d³u¿szy
+            holdOtherDigits = other.digits[i];
             for (int j = 7; j >= 0; j--) {
                 if (j == 7) {
                     carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
@@ -164,11 +169,129 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
                 }
             }
             result.digits.push_back(sum);
+            other.digits[i] = holdOtherDigits;
         }
     }
     if (carry == 1) {
         sum = 1;
         result.digits.push_back(sum);
+    }
+    return result;
+}
+
+BCDNumber BCDNumber::operator-(BCDNumber& other) {
+    BCDNumber result;
+    unsigned char substition;                               //char to put into result digits
+    unsigned char temp;
+    unsigned char temp1;
+    int newSize = max(digits.size(), other.digits.size());  //taking size of the biggest number
+    unsigned char borrow = 0;
+    unsigned char borrowWhere = 0;                          // zmienna do zaznaczenia skad jest zapozyczenie 
+    unsigned borrowInside = 0;
+    unsigned char holdDigits, holdOtherDigits;
+    int k;
+    if (digits.size() != newSize) {
+        cout << "No co ty co ty nie ma liczb ujemnych";
+    }
+    else {
+        for (int i = 0; i < newSize; i++) {
+            k = 0;
+            substition = 0;
+            if (digits.size() > i && other.digits.size() > i) {
+                holdDigits = digits[i];
+                holdOtherDigits = other.digits[i];
+                for (int j = 7; j >= 0; j--) {
+                    if (j == 7) {
+                        borrowInside = borrow;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
+                        borrow = 0;
+                    }
+                    temp = 0;
+                    temp1 = 0;
+                    temp = ((holdDigits % 2) ? 1 : 0);                       // ustalenie wartosci kolejnych bitow zaczynajac od tych najmniej znaczaych (od konca)
+                    holdDigits -= (temp + holdDigits / 2);
+                    temp1 = ((holdOtherDigits % 2) ? 1 : 0);
+                    holdOtherDigits -= (temp1 + holdOtherDigits / 2);       // kolejne dzielenia liczb 
+                    if (temp == temp1 && temp != 0) {                       //pocz¹tek logiki odejmowania
+                        if (borrowInside) {
+                            substition += pow(2, k);
+                        }
+                    }
+                    else if (temp == temp1) {
+                        if (borrowInside) {
+                            substition += pow(2, k);
+                        }
+                    }
+                    else {
+                        if (temp1 > temp) {
+                            if (!borrowInside) {
+                                substition += pow(2, k);
+                                borrowInside = 1;
+                            }
+                            else
+                                borrowInside = 0;
+                        }
+                        else {
+                            if (borrowInside)
+                                borrowInside = 0;
+                            else
+                                substition += pow(2, k);
+                        }
+                    }
+                    k++;
+                    if (j == 4)
+                        if (substition > 9) {
+                            substition -= 6;
+                        }
+                    if (j == 0) {                                                  // koniec logiki odejmowania
+                        unsigned char tempsubstition = (substition >> 4);
+                        unsigned char tempsubstition1 = substition - tempsubstition * (pow(2, 4));
+                        if (tempsubstition > 9 || borrowInside) {
+                            tempsubstition -= 6;
+                            substition = (tempsubstition << 4) | tempsubstition1;
+                        }
+                        borrow = borrowInside;
+                    }
+                }
+                result.digits.push_back(substition);
+            }
+            else {                                                                  //odejmowanie kiedy skoncza sie bity drugiej liczby 
+                holdDigits = digits[i];
+                for (int j = 7; j >= 0; j--) {
+                    if (j == 7) {
+                        borrowInside = borrow;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
+                        borrow = 0;
+                    }
+                    temp = 0;
+                    temp = ((holdDigits % 2) ? 1 : 0);                       // ustalenie wartosci kolejnych bitow zaczynajac od tych najmniej znaczaych (od konca)
+                    holdDigits -= (temp + holdDigits / 2);
+                    if (temp) {                       //pocz¹tek logiki odejmowania
+                        if (borrowInside)
+                            borrowInside = 0;
+                        else
+                            substition += pow(2, k);
+                    }
+                    else {
+                        if (borrowInside)
+                            substition += pow(2, k);
+                    }
+                    k++;
+                    if (j == 4)
+                        if (substition > 9) {
+                            substition -= 6;
+                        }
+                    if (j == 0) {                                                  // koniec logiki odejmowania
+                        unsigned char tempsubstition = (substition >> 4);
+                        unsigned char tempsubstition1 = substition - tempsubstition * (pow(2, 4));
+                        if (tempsubstition > 9 || borrowInside) {
+                            tempsubstition -= 6;
+                            substition = (tempsubstition << 4) | tempsubstition1;
+                        }
+                        borrow = borrowInside;
+                    }
+                }
+                result.digits.push_back(substition);
+            }
+        }
     }
     return result;
 }
@@ -182,6 +305,8 @@ BCDNumber::BCDNumber(string str) {
     int y;
     int z;
     unsigned char move;
+    if (str.size() % 2)
+        str.insert(0, "0");
     for (int i = 0; i < str.size(); i+=2) {
         x = stoi(str.substr(i, 2));
         y = x / 10;
@@ -198,7 +323,8 @@ string BCDNumber::toString() {
     str.reserve(digits.size());
     int x;
     int y;
-    digits.erase(digits.begin());
+    if (digits[0] == 0)
+        digits.erase(digits.begin());
     for (char digit : digits) { //poprawione wypisywanie liczb 
         x = (digit >> 4) & 0x0F;
         y = digit & 0x0F;
@@ -207,55 +333,3 @@ string BCDNumber::toString() {
     }
     return str;
 }
-
-//BCDNumber BCDNumber::operator-(BCDNumber& other) {
-//    BCDNumber repair("0110");
-//    BCDNumber result;
-//    int newSize = max(digits.size(), other.digits.size());
-//    unsigned char carry = '0'; //zapozyczenie
-//    unsigned char sub = '0'; //wynik poszczegolnych odejmowan
-//    int b = 0, c = 0;
-//    if (digits.size() >= other.digits.size()) {
-//        for (int i = 0; i < newSize; i++) {
-//
-//            // 0010 0010
-//            // 0001 0101
-//
-//            if (i < other.digits.size()) {
-//                sub = digits[digits.size() - 1 - i] - b - other.digits[other.digits.size() - i - 1] + 48;
-//
-//                /*cout << "c: " << c << ", b: " << b << ", sub: " << sub << endl;*/
-//            }
-//            else {
-//                sub = digits[digits.size() - 1 - i] - b;
-//            }
-//            if (sub < 48) {
-//                sub += 2;
-//                b = 1;
-//            }
-//            else {
-//                b = 0;
-//            }
-//
-//
-//            result.digits.insert(result.digits.begin(), sub);
-//            //Dodanie korekty przy zapozyczeniu z kolejnej grupy bitow
-//            if (i % 4 == 3 && b == 1) {
-//                int x = 0;
-//                string str;
-//                for (int j = i - 3; j <= i; j++)
-//                    str.push_back(result.digits[j]);
-//                BCDNumber temp(str);
-//                BCDNumber corrected = temp - repair;
-//                for (int j = i - 3; j <= i; j++) {
-//                    result.digits[j] = corrected.digits[x];
-//                    x++;
-//                }
-//            }
-//        }
-//    }
-//    else cout << "No nie da sie" << endl;
-//
-//    return result;
-//
-//}
