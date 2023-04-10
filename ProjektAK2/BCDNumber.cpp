@@ -299,11 +299,13 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
     BCDNumber result;
     unsigned char sum, sum1;
     int multiply = 0;
+    int m;
     unsigned char temp;
     unsigned char temp1;
     unsigned char holdDigits, holdOtherDigits;
     int k,z;
     for (int i = 0; i < other.digits.size(); i++) {
+        m = 1;
         BCDNumber mult1, mult2, mult3, mult4;
         multiply = 0;
         k = 0;
@@ -311,13 +313,21 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
         sum = 0;
         sum1 = 0;
         holdOtherDigits = other.digits[i];
-        for (int j = 7; j >= 0; j--) {
+        for (int j = 3; j >= 0; j--) {
             temp1 = ((holdOtherDigits % 2) ? 1 : 0);
             holdOtherDigits -= (temp1 + holdOtherDigits / 2);
             sum += temp1 * pow(2, k);
             k++;
         }
+        k = 0;
+        for (int j = 3; j >= 0; j--) {
+            temp1 = ((holdOtherDigits % 2) ? 1 : 0);
+            holdOtherDigits -= (temp1 + holdOtherDigits / 2);
+            sum += temp1 * pow(2, k) *10;
+            k++;
+        }
         for (int x = 0; x < digits.size(); x++) {
+           
             holdDigits = digits[x];
             for (int c = 3; c >= 0; c--) {
                 temp = ((holdDigits % 2) ? 1 : 0);
@@ -325,7 +335,7 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
                 sum1 += temp * pow(2, z);
                 z++;
             }
-            multiply += sum1 * sum;
+            multiply += sum1 * sum * pow(10,m-1);
             z = 0;
             sum1 = 0;
             for (int c = 3; c >= 0; c--) {
@@ -334,9 +344,12 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
                 sum1 += temp * pow(2, z);
                 z++;
             }
-            multiply += sum1 * sum * 10;
-            mult1 = BCDNumber(to_string(multiply)); //dziala ale nie dla wszystich na pewno tylko dla liczby dwucyfrowej * jednocyfrowa
+            z = 0;
+            multiply += sum1 * sum * pow(10,m);
+            sum1 = 0;
+            m += 2;
         }
+        mult1 = BCDNumber(to_string(multiply)); //dziala ale nie dla wszystich, popracowac nad liczbami wiekszymi od dwucyfrowych
         result = result + mult1;
     }
     return result;
