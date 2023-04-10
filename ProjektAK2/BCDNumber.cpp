@@ -186,7 +186,6 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
     unsigned char temp1;
     int newSize = max(digits.size(), other.digits.size());  //taking size of the biggest number
     unsigned char borrow = 0;
-    unsigned char borrowWhere = 0;                          // zmienna do zaznaczenia skad jest zapozyczenie 
     unsigned borrowInside = 0;
     unsigned char holdDigits, holdOtherDigits;
     int k;
@@ -295,6 +294,53 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
     }
     return result;
 }
+
+BCDNumber BCDNumber::operator*(BCDNumber& other) {
+    BCDNumber result;
+    unsigned char sum, sum1;
+    int multiply = 0;
+    unsigned char temp;
+    unsigned char temp1;
+    unsigned char holdDigits, holdOtherDigits;
+    int k,z;
+    for (int i = 0; i < other.digits.size(); i++) {
+        BCDNumber mult1, mult2, mult3, mult4;
+        multiply = 0;
+        k = 0;
+        z = 0;
+        sum = 0;
+        sum1 = 0;
+        holdOtherDigits = other.digits[i];
+        for (int j = 7; j >= 0; j--) {
+            temp1 = ((holdOtherDigits % 2) ? 1 : 0);
+            holdOtherDigits -= (temp1 + holdOtherDigits / 2);
+            sum += temp1 * pow(2, k);
+            k++;
+        }
+        for (int x = 0; x < digits.size(); x++) {
+            holdDigits = digits[x];
+            for (int c = 3; c >= 0; c--) {
+                temp = ((holdDigits % 2) ? 1 : 0);
+                holdDigits -= (temp + holdDigits / 2);
+                sum1 += temp * pow(2, z);
+                z++;
+            }
+            multiply += sum1 * sum;
+            z = 0;
+            sum1 = 0;
+            for (int c = 3; c >= 0; c--) {
+                temp = ((holdDigits % 2) ? 1 : 0);
+                holdDigits -= (temp + holdDigits / 2);
+                sum1 += temp * pow(2, z);
+                z++;
+            }
+            multiply += sum1 * sum * 10;
+            mult1 = BCDNumber(to_string(multiply)); //dziala ale nie dla wszystich na pewno tylko dla liczby dwucyfrowej * jednocyfrowa
+        }
+        result = result + mult1;
+    }
+    return result;
+}
 // Konstruktor, tworz¹cy BCDNumber o wartoœci 0
 BCDNumber::BCDNumber() {
     digits.push_back(0);
@@ -315,7 +361,15 @@ BCDNumber::BCDNumber(string str) {
         digits.insert(digits.begin(),move);
     }
 }
-
+BCDNumber::BCDNumber(char value) {
+    int x;
+    int y;
+    unsigned char move;
+    x = value / 10;
+    y = value % 10;
+    move = (x << 4) | y;
+    digits.insert(digits.begin(), move);
+}
 
 // Konwersja na string
 string BCDNumber::toString() {
@@ -333,3 +387,28 @@ string BCDNumber::toString() {
     }
     return str;
 }
+//if (j == 4) {
+           //    k = 0;
+           //    for (int x = 0; x < digits.size(); x++) {
+           //        holdDigits = digits[x];
+           //        for (int c = 3; c >= 0; c--) {
+           //            temp = ((holdDigits % 2) ? 1 : 0);
+           //            holdDigits -= (temp + holdDigits / 2);
+           //            sum1 += temp * pow(2, z);
+           //            z++;
+           //        }
+           //        z = 0;
+           //        sum1 *= sum;
+           //        mult1 = BCDNumber(sum1);
+           //        sum1 = 0;
+           //        for (int c = 3; c >= 0; c--) {
+           //            temp = ((holdDigits % 2) ? 1 : 0);
+           //            holdDigits -= (temp + holdDigits / 2);
+           //            sum1 += temp * pow(2, z);
+           //            z++;
+           //        }
+           //        sum1 *= sum;
+           //        mult2 = BCDNumber();//jak to dalej zrobic
+           //        BCDNumber add = mult1 + mult2;
+           //    }
+           //}
