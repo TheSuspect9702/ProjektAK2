@@ -226,8 +226,6 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
                                 substition += pow(2, k);
                                 borrowInside = 1;
                             }
-                            else
-                                borrowInside = 0;
                         }
                         else {
                             if (borrowInside)
