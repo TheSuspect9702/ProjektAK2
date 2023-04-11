@@ -3,7 +3,7 @@
 using namespace std;
 int main()
 {//                22              15              
-    string a = "101", b = "51"; //dodac flage liczby ujemnej przy odejmowaniu 
+    string a = "542", b = "101"; //dodac flage liczby ujemnej przy odejmowaniu 
     BCDNumber num1(a);
     BCDNumber num2(b);
     BCDNumber sum = num1 + num2;

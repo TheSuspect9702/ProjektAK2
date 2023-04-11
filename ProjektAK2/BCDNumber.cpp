@@ -304,7 +304,7 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
     int k,z;
     for (int i = 0; i < other.digits.size(); i++) {
         m = 1;
-        BCDNumber mult1, mult2, mult3, mult4;
+        BCDNumber mult1;
         multiply = 0;
         k = 0;
         z = 0;
@@ -321,7 +321,7 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
         for (int j = 3; j >= 0; j--) {
             temp1 = ((holdOtherDigits % 2) ? 1 : 0);
             holdOtherDigits -= (temp1 + holdOtherDigits / 2);
-            sum += temp1 * pow(2, k) *10;
+            sum += temp1 * pow(2, k) * 10;
             k++;
         }
         for (int x = 0; x < digits.size(); x++) {
@@ -350,11 +350,16 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
         mult1 = BCDNumber(to_string(multiply)); //dziala ale nie dla wszystich, popracowac nad liczbami wiekszymi od dwucyfrowych
         result = result + mult1;
     }
+    int n = 0;
+    while (!other.digits[n]) {
+        result.digits.insert(result.digits.begin(), 0);
+        n++;
+    } 
+    n = 0;
     return result;
 }
 // Konstruktor, tworz¹cy BCDNumber o wartoœci 0
 BCDNumber::BCDNumber() {
-    digits.push_back(0);
 }
 
 BCDNumber::BCDNumber(string str) {
@@ -388,8 +393,6 @@ string BCDNumber::toString() {
     str.reserve(digits.size());
     int x;
     int y;
-    if (digits[0] == 0)
-        digits.erase(digits.begin());
     for (char digit : digits) { //poprawione wypisywanie liczb 
         x = (digit >> 4) & 0x0F;
         y = digit & 0x0F;
