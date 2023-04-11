@@ -2,182 +2,49 @@
 #include <iostream>   // std::cout
 #include <string>     // std::string, std::stoi
 using namespace std;
-
-BCDNumber BCDNumber::operator+(BCDNumber& other) {
-    BCDNumber result;
-    unsigned char sum;
-    unsigned char temp;
-    unsigned char temp1;
-    unsigned char holdDigits, holdOtherDigits;
-    int newSize = max(digits.size(), other.digits.size());
+vector<unsigned char> bcd_addition(const vector<unsigned char>& vector1, const vector<unsigned char>& vector2) {
+    vector<unsigned char> result(vector1.size(), 0);
     unsigned char carry = 0;
-    unsigned carryInside = 0;
-    int k;
-    for (int i = 0; i < newSize; i++) {
-        k = 0;
-        sum = 0;
-        if (digits.size() > i && other.digits.size() > i) {
-            holdDigits = digits[i];
-            holdOtherDigits = other.digits[i];
-            for (int j = 7; j >= 0; j--) {
-                if (j == 7) {
-                    carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
-                    carry = 0;
-                }
-                temp = 0;
-                temp1 = 0;
-                temp = ((digits[i] % 2) ? 1 : 0);
-                digits[i] -= (temp + digits[i] / 2);
-                temp1 = ((other.digits[i] % 2) ? 1 : 0);
-                other.digits[i] -= (temp1 + other.digits[i] / 2);       // kolejne dzielenia liczb 
-                if (temp == temp1 && temp != 0) {
-                    if (carryInside)
-                        sum += carryInside * pow(2, k);
-                    else
-                        sum += 0;
-                    carryInside = 1;
-                }
-                else if (temp == temp1) {
-                    if (carryInside) {
-                        sum += carryInside * pow(2, k);
-                        carryInside = 0;
-                    }
-                    else
-                        sum += 0;
-                }
-                else {
-                    if (carryInside)
-                        sum += 0;
-                    else
-                        sum += ((temp > temp1) ? temp : temp1) * pow(2, k);
-                }
-                k++;
-                if (j == 4) 
-                    if (sum > 9) {
-                        sum += 6;
-                        if (sum < 16)
-                            carryInside = 1;
-                        else
-                            carryInside = 0;
-                    }
-                if (j == 0) {
-                    unsigned char tempSum = (sum >> 4);
-                    unsigned char tempSum1 = sum - tempSum*(pow(2, 4));
-                    if (tempSum > 9) {
-                        tempSum += 6;
-                        sum = (tempSum << 4) | tempSum1;
-                        carryInside = 1;
-                    }
-                    carry = carryInside;
-                }
-            }
-            result.digits.push_back(sum);
-            digits[i] = holdDigits;
-            other.digits[i] = holdOtherDigits;
-        }
-        else if (digits.size() > i) { //dodawanie jesli pierwszy wyraz jest d³u¿szy od drugiego
-            holdDigits = digits[i];
-            for (int j = 7; j >= 0; j--) {
-                if (j == 7) {
-                    carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
-                    carry = 0;
-                }
-                temp = 0;
-                temp = ((digits[i] % 2) ? 1 : 0);
-                digits[i] -= (temp + digits[i] / 2);
-                if (temp) {
-                    if (carryInside) {
-                        sum += 0;
-                    }
-                    else
-                        sum += temp * pow(2, k);
-                }
-                else {
-                    if (carryInside) {
-                        sum += carryInside * pow(2, k);
-                        carryInside = 0;
-                    }
-                    else
-                        sum += 0;
-                }
-                k++;
-                if (j == 4)
-                    if (sum > 9) {
-                        sum += 6;
-                        if (sum < 16)
-                            carryInside = 1;
-                        else
-                            carryInside = 0;
-                    }
-                if (j == 0) {
-                    unsigned char tempSum = (sum >> 4);
-                    unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
-                    if (tempSum > 9) {
-                        tempSum += 6;
-                        sum = (tempSum << 4) | tempSum1;
-                        carryInside = 1;
-                    }
-                    carry = carryInside;
-                }
-            }
-            result.digits.push_back(sum);
-            digits[i] = holdDigits;
-        }
-        else if (other.digits.size() > i) { // dodawanie kiedy drugi wyraz jest d³u¿szy
-            holdOtherDigits = other.digits[i];
-            for (int j = 7; j >= 0; j--) {
-                if (j == 7) {
-                    carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
-                    carry = 0;
-                }
-                temp = 0;
-                temp = ((other.digits[i] % 2) ? 1 : 0);
-                other.digits[i] -= (temp + other.digits[i] / 2);
-                if (temp) {
-                    if (carryInside) {
-                        sum += 0;
-                    }
-                    else
-                        sum += temp * pow(2, k);
-                }
-                else {
-                    if (carryInside) {
-                        sum += carryInside * pow(2, k);
-                        carryInside = 0;
-                    }
-                    else
-                        sum += 0;
-                }
-                k++;
-                if (j == 4)
-                    if (sum > 9) {
-                        sum += 6;
-                        if (sum < 16)
-                            carryInside = 1;
-                        else
-                            carryInside = 0;
-                    }
-                if (j == 0) {
-                    unsigned char tempSum = (sum >> 4);
-                    unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
-                    if (tempSum > 9) {
-                        tempSum += 6;
-                        sum = (tempSum << 4) | tempSum1;
-                        carryInside = 1;
-                    }
-                    carry = carryInside;
-                }
-            }
-            result.digits.push_back(sum);
-            other.digits[i] = holdOtherDigits;
-        }
-    }
-    if (carry == 1) {
-        sum = 1;
-        result.digits.push_back(sum);
+
+    // Ustawienie flagi kierunku
+    asm("cld");
+
+    for (int i = vector1.size() - 1; i >= 0; --i) {
+        // Wyci¹ganie cyfr z wektorów i dodawanie ich
+        unsigned char digit1 = vector1[i] & 0x0F;
+        unsigned char digit2 = vector2[i] & 0x0F;
+        unsigned char digit_sum = digit1 + digit2 + carry;
+
+        // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
+        asm("aaa\n\t"
+            : "+a"(digit_sum), "+d"(carry)
+        );
+
+        // Zapisywanie sumy cyfr do wynikowego wektora  
+        result[i] |= digit_sum;
+
+        // Wyci¹ganie cyfr dziesi¹tek z wektorów i dodawanie ich
+        digit1 = (vector1[i] >> 4) & 0x0F;
+        digit2 = (vector2[i] >> 4) & 0x0F;
+        digit_sum = digit1 + digit2 + carry;
+
+        // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
+        asm("aaa\n\t"
+            : "+a"(digit_sum), "+d"(carry));
+
+        // Wywo³anie instrukcji DAA, aby skorygowaæ wynik dziesi¹tek
+        asm("daa\n\t"
+            : "+a"(digit_sum));
+
+        // Zapisywanie sumy dziesi¹tek do wynikowego wektora
+        result[i] |= (digit_sum << 4);
     }
     return result;
 }
+BCDNumber BCDNumber::operator+(BCDNumber& other) {
+   
+}
+
 
 BCDNumber BCDNumber::operator-(BCDNumber& other) {
     BCDNumber result;
@@ -426,3 +293,177 @@ string BCDNumber::toString() {
            //        BCDNumber add = mult1 + mult2;
            //    }
            //}
+//BCDNumber result;
+//unsigned char sum;
+//unsigned char temp;
+//unsigned char temp1;
+//unsigned char holdDigits, holdOtherDigits;
+//int newSize = max(digits.size(), other.digits.size());
+//unsigned char carry = 0;
+//unsigned carryInside = 0;
+//int k;
+//for (int i = 0; i < newSize; i++) {
+//    k = 0;
+//    sum = 0;
+//    if (digits.size() > i && other.digits.size() > i) {
+//        holdDigits = digits[i];
+//        holdOtherDigits = other.digits[i];
+//        for (int j = 7; j >= 0; j--) {
+//            if (j == 7) {
+//                carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
+//                carry = 0;
+//            }
+//            temp = 0;
+//            temp1 = 0;
+//            temp = ((digits[i] % 2) ? 1 : 0);
+//            digits[i] -= (temp + digits[i] / 2);
+//            temp1 = ((other.digits[i] % 2) ? 1 : 0);
+//            other.digits[i] -= (temp1 + other.digits[i] / 2);       // kolejne dzielenia liczb 
+//            if (temp == temp1 && temp != 0) {
+//                if (carryInside)
+//                    sum += carryInside * pow(2, k);
+//                else
+//                    sum += 0;
+//                carryInside = 1;
+//            }
+//            else if (temp == temp1) {
+//                if (carryInside) {
+//                    sum += carryInside * pow(2, k);
+//                    carryInside = 0;
+//                }
+//                else
+//                    sum += 0;
+//            }
+//            else {
+//                if (carryInside)
+//                    sum += 0;
+//                else
+//                    sum += ((temp > temp1) ? temp : temp1) * pow(2, k);
+//            }
+//            k++;
+//            if (j == 4)
+//                if (sum > 9) {
+//                    sum += 6;
+//                    if (sum < 16)
+//                        carryInside = 1;
+//                    else
+//                        carryInside = 0;
+//                }
+//            if (j == 0) {
+//                unsigned char tempSum = (sum >> 4);
+//                unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
+//                if (tempSum > 9) {
+//                    tempSum += 6;
+//                    sum = (tempSum << 4) | tempSum1;
+//                    carryInside = 1;
+//                }
+//                carry = carryInside;
+//            }
+//        }
+//        result.digits.push_back(sum);
+//        digits[i] = holdDigits;
+//        other.digits[i] = holdOtherDigits;
+//    }
+//    else if (digits.size() > i) { //dodawanie jesli pierwszy wyraz jest d³u¿szy od drugiego
+//        holdDigits = digits[i];
+//        for (int j = 7; j >= 0; j--) {
+//            if (j == 7) {
+//                carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
+//                carry = 0;
+//            }
+//            temp = 0;
+//            temp = ((digits[i] % 2) ? 1 : 0);
+//            digits[i] -= (temp + digits[i] / 2);
+//            if (temp) {
+//                if (carryInside) {
+//                    sum += 0;
+//                }
+//                else
+//                    sum += temp * pow(2, k);
+//            }
+//            else {
+//                if (carryInside) {
+//                    sum += carryInside * pow(2, k);
+//                    carryInside = 0;
+//                }
+//                else
+//                    sum += 0;
+//            }
+//            k++;
+//            if (j == 4)
+//                if (sum > 9) {
+//                    sum += 6;
+//                    if (sum < 16)
+//                        carryInside = 1;
+//                    else
+//                        carryInside = 0;
+//                }
+//            if (j == 0) {
+//                unsigned char tempSum = (sum >> 4);
+//                unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
+//                if (tempSum > 9) {
+//                    tempSum += 6;
+//                    sum = (tempSum << 4) | tempSum1;
+//                    carryInside = 1;
+//                }
+//                carry = carryInside;
+//            }
+//        }
+//        result.digits.push_back(sum);
+//        digits[i] = holdDigits;
+//    }
+//    else if (other.digits.size() > i) { // dodawanie kiedy drugi wyraz jest d³u¿szy
+//        holdOtherDigits = other.digits[i];
+//        for (int j = 7; j >= 0; j--) {
+//            if (j == 7) {
+//                carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
+//                carry = 0;
+//            }
+//            temp = 0;
+//            temp = ((other.digits[i] % 2) ? 1 : 0);
+//            other.digits[i] -= (temp + other.digits[i] / 2);
+//            if (temp) {
+//                if (carryInside) {
+//                    sum += 0;
+//                }
+//                else
+//                    sum += temp * pow(2, k);
+//            }
+//            else {
+//                if (carryInside) {
+//                    sum += carryInside * pow(2, k);
+//                    carryInside = 0;
+//                }
+//                else
+//                    sum += 0;
+//            }
+//            k++;
+//            if (j == 4)
+//                if (sum > 9) {
+//                    sum += 6;
+//                    if (sum < 16)
+//                        carryInside = 1;
+//                    else
+//                        carryInside = 0;
+//                }
+//            if (j == 0) {
+//                unsigned char tempSum = (sum >> 4);
+//                unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
+//                if (tempSum > 9) {
+//                    tempSum += 6;
+//                    sum = (tempSum << 4) | tempSum1;
+//                    carryInside = 1;
+//                }
+//                carry = carryInside;
+//            }
+//        }
+//        result.digits.push_back(sum);
+//        other.digits[i] = holdOtherDigits;
+//    }
+//}
+//if (carry == 1) {
+//    sum = 1;
+//    result.digits.push_back(sum);
+//}
+//return result;
+//}
