@@ -131,7 +131,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BCDNumber.cpp" />
-    <ClCompile Include="BCDNumberTest.cpp" />
     <ClCompile Include="ProjektAK2.cpp" />
   </ItemGroup>
   <ItemGroup>

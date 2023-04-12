@@ -1,229 +1,213 @@
 #include "BCDNumber.h"
 #include <iostream>   // std::cout
 #include <string>     // std::string, std::stoi
+
 using namespace std;
-vector<unsigned char> bcd_addition(const vector<unsigned char>& vector1, const vector<unsigned char>& vector2) {
-    vector<unsigned char> result(vector1.size(), 0);
+
+vector<unsigned char> bcd_addition(vector<unsigned char>& vector1, vector<unsigned char>& vector2) {
     unsigned char carry = 0;
+    unsigned char digit1;
+    unsigned char digit2;
+    unsigned char digit_sum;
+   
 
-    // Ustawienie flagi kierunku
-    asm("cld");
-
-    for (int i = vector1.size() - 1; i >= 0; --i) {
-        // Wyci¹ganie cyfr z wektorów i dodawanie ich
-        unsigned char digit1 = vector1[i] & 0x0F;
-        unsigned char digit2 = vector2[i] & 0x0F;
-        unsigned char digit_sum = digit1 + digit2 + carry;
-
+    int maxSize = max(vector1.size(), vector2.size());
+    vector<unsigned char> result(maxSize, 0);
+    for (int i = 0; i < maxSize; i++) {
+        if (i < vector1.size() && i < vector2.size()) {
+            // Wyci¹ganie cyfr z wektorów i dodawanie ich
+            digit1 = vector1[i] & 0x0F; //wyciagniecie cyfry za pomoca operacji AND 0x0F to 00001111 czyli dla vectora[i] = przykladowo 0x32
+            digit2 = vector2[i] & 0x0F; //operacja spowoduje ze wszystkie bity w vector[i] oprocz 4 najmlodszych zostana ustawione na 0 czyli otrzymujemy jednosci 
+            digit_sum = digit1 + digit2 + carry;
+        }
+        else if (i < vector1.size()) {
+            digit1 = vector1[i] & 0x0F;
+            digit_sum = digit1 + carry;
+        }
+        else {
+            digit1 = vector2[i] & 0x0F;
+            digit_sum = digit1 + carry;
+        }
         // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
-        asm("aaa\n\t"
-            : "+a"(digit_sum), "+d"(carry)
-        );
+        __asm {
+            aaa; korygujemy cyfry jednosci(-6 jesli wiêksze od 9 i przeniesienie = 1)
+            mov digit_sum, al
+            mov carry, ah
+        }
 
         // Zapisywanie sumy cyfr do wynikowego wektora  
         result[i] |= digit_sum;
 
         // Wyci¹ganie cyfr dziesi¹tek z wektorów i dodawanie ich
-        digit1 = (vector1[i] >> 4) & 0x0F;
-        digit2 = (vector2[i] >> 4) & 0x0F;
-        digit_sum = digit1 + digit2 + carry;
-
+        if (i < vector1.size() && i < vector2.size()) {
+            digit1 = (vector1[i] >> 4) & 0x0F;
+            digit2 = (vector2[i] >> 4) & 0x0F;
+            digit_sum = digit1 + digit2 + carry;
+        }
+        else if (i < vector1.size()) {
+            digit1 = (vector1[i] >> 4) & 0x0F;
+            digit_sum = digit1 + carry;
+        }
+        else {
+            digit1 = (vector2[i] >> 4) & 0x0F;
+            digit_sum = digit1 + carry;
+        }
         // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
-        asm("aaa\n\t"
-            : "+a"(digit_sum), "+d"(carry));
-
-        // Wywo³anie instrukcji DAA, aby skorygowaæ wynik dziesi¹tek
-        asm("daa\n\t"
-            : "+a"(digit_sum));
-
+        __asm {
+            aaa; ewentualne dodanie przeniesienia z jednosci i korekta wartosci w rejestrze al w przypadku przekroczenia wartosci 9
+            mov digit_sum, al
+            mov carry, ah
+        }
         // Zapisywanie sumy dziesi¹tek do wynikowego wektora
         result[i] |= (digit_sum << 4);
+        if (i == maxSize - 1 && carry) {
+            result.push_back(1);
+        }
     }
     return result;
 }
+
 BCDNumber BCDNumber::operator+(BCDNumber& other) {
-   
+    BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_addiction
+    result.digits = bcd_addition(digits, other.digits);
+
+    return result;
 }
 
+vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<unsigned char>& vector2) {
+    unsigned char carry = 0;
+    unsigned char bonuscarry = 0;
+    unsigned char digit1;
+    unsigned char digit2;
+    unsigned char digit_sub;
+    int maxSize = max(vector1.size(), vector2.size());
+    vector<unsigned char> result(maxSize, 0);
+    for (int i = 0; i < maxSize; i++) {
+        digit2 = 0;
+        if (i < vector1.size() && i < vector2.size()) {
+            // Wyci¹ganie cyfr z wektorów i odejmowanie ich
+            digit1 = vector1[i] & 0x0F; //wyciagniecie cyfry za pomoca operacji AND 0x0F to 00001111 czyli dla vectora[i] = przykladowo 0x32
+            digit2 = vector2[i] & 0x0F; //operacja spowoduje ze wszystkie bity w vector[i] oprocz 4 najmlodszych zostana ustawione na 0 czyli otrzymujemy jednosci 
+        }
+        else if (i < vector1.size()) {
+            digit1 = vector1[i] & 0x0F;
+        }
+        if (digit1 <= digit2 && carry)
+            digit1++;
+        if (digit1 > digit2 && carry)
+            digit1--;
+
+        __asm {
+            mov al, digit1
+            sub al, digit2
+            aas; korygujemy cyfry jednosci(-6 jesli wiêksze od 9 i przeniesienie = 1)
+            mov digit_sub, al
+            mov carry, ah
+        }
+        if (carry != 0)
+            carry = 1;
+        // Zapisywanie ró¿nicy cyfr do wynikowego wektora  
+        result[i] |= digit_sub;
+
+        // Wyci¹ganie cyfr dziesi¹tek z wektorów i odejmowanie ich
+        if (i < vector1.size() && i < vector2.size()) {
+            digit1 = (vector1[i] >> 4) & 0x0F;
+            digit2 = (vector2[i] >> 4) & 0x0F;
+        }
+        else if (i < vector1.size()) {
+            digit1 = (vector1[i] >> 4) & 0x0F;
+        }
+        // Wywo³anie instrukcji AAS, aby skorygowaæ ró¿nicê
+        if (digit1 <= digit2 && carry) {
+            digit1 += 9;
+            bonuscarry = carry;
+        }
+        if (digit1 > digit2 && carry)
+            digit1--;
+        __asm {
+            mov al, digit1
+            sub al, digit2
+            aas; ewentualne dodanie przeniesienia z jednosci i korekta wartosci w rejestrze al w przypadku przekroczenia wartosci 9
+            mov digit_sub, al
+            mov carry, ah
+        }
+        if (carry != 0 || bonuscarry) {
+            carry = 1;
+            bonuscarry = 0;
+        }
+        
+
+        // Zapisywanie ró¿nicy dziesi¹tek do wynikowego wektora
+        result[i] |= (digit_sub << 4);
+    }
+    return result;
+}
 
 BCDNumber BCDNumber::operator-(BCDNumber& other) {
-    BCDNumber result;
-    unsigned char substition;                               //char to put into result digits
-    unsigned char temp;
-    unsigned char temp1;
-    int newSize = max(digits.size(), other.digits.size());  //taking size of the biggest number
-    unsigned char borrow = 0;
-    unsigned borrowInside = 0;
-    unsigned char holdDigits, holdOtherDigits;
-    int k;
-    if (digits.size() != newSize) {
-        cout << "No co ty co ty nie ma liczb ujemnych";
-    }
-    else {
-        for (int i = 0; i < newSize; i++) {
-            k = 0;
-            substition = 0;
-            if (digits.size() > i && other.digits.size() > i) {
-                holdDigits = digits[i];
-                holdOtherDigits = other.digits[i];
-                for (int j = 7; j >= 0; j--) {
-                    if (j == 7) {
-                        borrowInside = borrow;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
-                        borrow = 0;
-                    }
-                    temp = 0;
-                    temp1 = 0;
-                    temp = ((holdDigits % 2) ? 1 : 0);                       // ustalenie wartosci kolejnych bitow zaczynajac od tych najmniej znaczaych (od konca)
-                    holdDigits -= (temp + holdDigits / 2);
-                    temp1 = ((holdOtherDigits % 2) ? 1 : 0);
-                    holdOtherDigits -= (temp1 + holdOtherDigits / 2);       // kolejne dzielenia liczb 
-                    if (temp == temp1 && temp != 0) {                       //pocz¹tek logiki odejmowania
-                        if (borrowInside) {
-                            substition += pow(2, k);
-                        }
-                    }
-                    else if (temp == temp1) {
-                        if (borrowInside) {
-                            substition += pow(2, k);
-                        }
-                    }
-                    else {
-                        if (temp1 > temp) {
-                            if (!borrowInside) {
-                                substition += pow(2, k);
-                                borrowInside = 1;
-                            }
-                        }
-                        else {
-                            if (borrowInside)
-                                borrowInside = 0;
-                            else
-                                substition += pow(2, k);
-                        }
-                    }
-                    k++;
-                    if (j == 4)
-                        if (substition > 9) {
-                            substition -= 6;
-                        }
-                    if (j == 0) {                                                  // koniec logiki odejmowania
-                        unsigned char tempsubstition = (substition >> 4);
-                        unsigned char tempsubstition1 = substition - tempsubstition * (pow(2, 4));
-                        if (tempsubstition > 9 || borrowInside) {
-                            tempsubstition -= 6;
-                            substition = (tempsubstition << 4) | tempsubstition1;
-                        }
-                        borrow = borrowInside;
-                    }
-                }
-                result.digits.push_back(substition);
-            }
-            else {                                                                  //odejmowanie kiedy skoncza sie bity drugiej liczby 
-                holdDigits = digits[i];
-                for (int j = 7; j >= 0; j--) {
-                    if (j == 7) {
-                        borrowInside = borrow;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
-                        borrow = 0;
-                    }
-                    temp = 0;
-                    temp = ((holdDigits % 2) ? 1 : 0);                       // ustalenie wartosci kolejnych bitow zaczynajac od tych najmniej znaczaych (od konca)
-                    holdDigits -= (temp + holdDigits / 2);
-                    if (temp) {                       //pocz¹tek logiki odejmowania
-                        if (borrowInside)
-                            borrowInside = 0;
-                        else
-                            substition += pow(2, k);
-                    }
-                    else {
-                        if (borrowInside)
-                            substition += pow(2, k);
-                    }
-                    k++;
-                    if (j == 4)
-                        if (substition > 9) {
-                            substition -= 6;
-                        }
-                    if (j == 0) {                                                  // koniec logiki odejmowania
-                        unsigned char tempsubstition = (substition >> 4);
-                        unsigned char tempsubstition1 = substition - tempsubstition * (pow(2, 4));
-                        if (tempsubstition > 9 || borrowInside) {
-                            tempsubstition -= 6;
-                            substition = (tempsubstition << 4) | tempsubstition1;
-                        }
-                        borrow = borrowInside;
-                    }
-                }
-                result.digits.push_back(substition);
-            }
+    BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_substraction
+    result.digits = bcd_substraction(digits, other.digits);
+
+    return result;
+}
+
+vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<unsigned char>& vector2) {
+    unsigned char carry = 0;
+    unsigned char digit1;
+    unsigned char digit2;
+    unsigned char digit_mul;
+    int maxSize = max(vector1.size(), vector2.size());
+    vector<unsigned char> result(maxSize, 0);
+    for (int i = 0; i < maxSize; i++) {
+        if (i < vector1.size() && i < vector2.size()) {
+            // Wyci¹ganie cyfr z wektorów i dodawanie ich
+            digit1 = vector1[i] & 0x0F; //wyciagniecie cyfry za pomoca operacji AND 0x0F to 00001111 czyli dla vectora[i] = przykladowo 0x32
+            digit2 = vector2[i] & 0x0F; //operacja spowoduje ze wszystkie bity w vector[i] oprocz 4 najmlodszych zostana ustawione na 0 czyli otrzymujemy jednosci 
         }
+        else if (i < vector1.size()) {
+            digit1 = vector1[i] & 0x0F;
+        }
+        else {
+            digit1 = vector2[i] & 0x0F;
+        }
+        // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
+        __asm {
+            aam; korygujemy cyfry jednosci(-6 jesli wiêksze od 9 i przeniesienie = 1)
+            mov digit_mul, al
+            mov carry, ah
+        }
+
+        // Zapisywanie sumy cyfr do wynikowego wektora  
+        result[i] |= digit_mul;
+
+        // Wyci¹ganie cyfr dziesi¹tek z wektorów i dodawanie ich
+        if (i < vector1.size() && i < vector2.size()) {
+            digit1 = (vector1[i] >> 4) & 0x0F;
+            digit2 = (vector2[i] >> 4) & 0x0F;
+        }
+        else if (i < vector1.size()) {
+            digit1 = (vector1[i] >> 4) & 0x0F;
+        }
+        else {
+            digit1 = (vector2[i] >> 4) & 0x0F;
+        }
+        // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
+        __asm {
+            aam; ewentualne dodanie przeniesienia z jednosci i korekta wartosci w rejestrze al w przypadku przekroczenia wartosci 9
+            mov digit_mul, al
+            mov carry, ah
+        }
+        // Zapisywanie sumy dziesi¹tek do wynikowego wektora
+        result[i] |= (digit_mul << 4);
     }
     return result;
 }
 
 BCDNumber BCDNumber::operator*(BCDNumber& other) {
-    BCDNumber result;
-    unsigned char sum, sum1;
-    int multiply = 0;
-    int m;
-    unsigned char temp;
-    unsigned char temp1;
-    unsigned char holdDigits, holdOtherDigits;
-    int k,z;
-    for (int i = 0; i < other.digits.size(); i++) {
-        m = 1;
-        BCDNumber mult1;
-        multiply = 0;
-        k = 0;
-        z = 0;
-        sum = 0;
-        sum1 = 0;
-        holdOtherDigits = other.digits[i];
-        for (int j = 3; j >= 0; j--) {
-            temp1 = ((holdOtherDigits % 2) ? 1 : 0);
-            holdOtherDigits -= (temp1 + holdOtherDigits / 2);
-            sum += temp1 * pow(2, k);
-            k++;
-        }
-        k = 0;
-        for (int j = 3; j >= 0; j--) {
-            temp1 = ((holdOtherDigits % 2) ? 1 : 0);
-            holdOtherDigits -= (temp1 + holdOtherDigits / 2);
-            sum += temp1 * pow(2, k) * 10;
-            k++;
-        }
-        for (int x = 0; x < digits.size(); x++) {
-           
-            holdDigits = digits[x];
-            for (int c = 3; c >= 0; c--) {
-                temp = ((holdDigits % 2) ? 1 : 0);
-                holdDigits -= (temp + holdDigits / 2);
-                sum1 += temp * pow(2, z);
-                z++;
-            }
-            multiply += sum1 * sum * pow(10,m-1);
-            z = 0;
-            sum1 = 0;
-            for (int c = 3; c >= 0; c--) {
-                temp = ((holdDigits % 2) ? 1 : 0);
-                holdDigits -= (temp + holdDigits / 2);
-                sum1 += temp * pow(2, z);
-                z++;
-            }
-            z = 0;
-            multiply += sum1 * sum * pow(10,m);
-            sum1 = 0;
-            m += 2;
-        }
-        mult1 = BCDNumber(to_string(multiply)); //dziala ale nie dla wszystich, popracowac nad liczbami wiekszymi od dwucyfrowych
-        result = result + mult1;
-    }
-    int n = 0;
-    while (!other.digits[n]) {
-        result.digits.insert(result.digits.begin(), 0);
-        n++;
-    } 
-    n = 0;
+    BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_substraction
+    result.digits = bcd_multiplication(digits, other.digits);
+
     return result;
+    
 }
 // Konstruktor, tworz¹cy BCDNumber o wartoœci 0
 BCDNumber::BCDNumber() {
@@ -236,12 +220,12 @@ BCDNumber::BCDNumber(string str) {
     unsigned char move;
     if (str.size() % 2)
         str.insert(0, "0");
-    for (int i = 0; i < str.size(); i+=2) {
+    for (int i = 0; i < str.size(); i += 2) {
         x = stoi(str.substr(i, 2));
         y = x / 10;
         z = x % 10;
         move = (y << 4) | z;
-        digits.insert(digits.begin(),move);
+        digits.insert(digits.begin(), move);
     }
 }
 BCDNumber::BCDNumber(char value) {
@@ -268,202 +252,3 @@ string BCDNumber::toString() {
     }
     return str;
 }
-//if (j == 4) {
-           //    k = 0;
-           //    for (int x = 0; x < digits.size(); x++) {
-           //        holdDigits = digits[x];
-           //        for (int c = 3; c >= 0; c--) {
-           //            temp = ((holdDigits % 2) ? 1 : 0);
-           //            holdDigits -= (temp + holdDigits / 2);
-           //            sum1 += temp * pow(2, z);
-           //            z++;
-           //        }
-           //        z = 0;
-           //        sum1 *= sum;
-           //        mult1 = BCDNumber(sum1);
-           //        sum1 = 0;
-           //        for (int c = 3; c >= 0; c--) {
-           //            temp = ((holdDigits % 2) ? 1 : 0);
-           //            holdDigits -= (temp + holdDigits / 2);
-           //            sum1 += temp * pow(2, z);
-           //            z++;
-           //        }
-           //        sum1 *= sum;
-           //        mult2 = BCDNumber();//jak to dalej zrobic
-           //        BCDNumber add = mult1 + mult2;
-           //    }
-           //}
-//BCDNumber result;
-//unsigned char sum;
-//unsigned char temp;
-//unsigned char temp1;
-//unsigned char holdDigits, holdOtherDigits;
-//int newSize = max(digits.size(), other.digits.size());
-//unsigned char carry = 0;
-//unsigned carryInside = 0;
-//int k;
-//for (int i = 0; i < newSize; i++) {
-//    k = 0;
-//    sum = 0;
-//    if (digits.size() > i && other.digits.size() > i) {
-//        holdDigits = digits[i];
-//        holdOtherDigits = other.digits[i];
-//        for (int j = 7; j >= 0; j--) {
-//            if (j == 7) {
-//                carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
-//                carry = 0;
-//            }
-//            temp = 0;
-//            temp1 = 0;
-//            temp = ((digits[i] % 2) ? 1 : 0);
-//            digits[i] -= (temp + digits[i] / 2);
-//            temp1 = ((other.digits[i] % 2) ? 1 : 0);
-//            other.digits[i] -= (temp1 + other.digits[i] / 2);       // kolejne dzielenia liczb 
-//            if (temp == temp1 && temp != 0) {
-//                if (carryInside)
-//                    sum += carryInside * pow(2, k);
-//                else
-//                    sum += 0;
-//                carryInside = 1;
-//            }
-//            else if (temp == temp1) {
-//                if (carryInside) {
-//                    sum += carryInside * pow(2, k);
-//                    carryInside = 0;
-//                }
-//                else
-//                    sum += 0;
-//            }
-//            else {
-//                if (carryInside)
-//                    sum += 0;
-//                else
-//                    sum += ((temp > temp1) ? temp : temp1) * pow(2, k);
-//            }
-//            k++;
-//            if (j == 4)
-//                if (sum > 9) {
-//                    sum += 6;
-//                    if (sum < 16)
-//                        carryInside = 1;
-//                    else
-//                        carryInside = 0;
-//                }
-//            if (j == 0) {
-//                unsigned char tempSum = (sum >> 4);
-//                unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
-//                if (tempSum > 9) {
-//                    tempSum += 6;
-//                    sum = (tempSum << 4) | tempSum1;
-//                    carryInside = 1;
-//                }
-//                carry = carryInside;
-//            }
-//        }
-//        result.digits.push_back(sum);
-//        digits[i] = holdDigits;
-//        other.digits[i] = holdOtherDigits;
-//    }
-//    else if (digits.size() > i) { //dodawanie jesli pierwszy wyraz jest d³u¿szy od drugiego
-//        holdDigits = digits[i];
-//        for (int j = 7; j >= 0; j--) {
-//            if (j == 7) {
-//                carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
-//                carry = 0;
-//            }
-//            temp = 0;
-//            temp = ((digits[i] % 2) ? 1 : 0);
-//            digits[i] -= (temp + digits[i] / 2);
-//            if (temp) {
-//                if (carryInside) {
-//                    sum += 0;
-//                }
-//                else
-//                    sum += temp * pow(2, k);
-//            }
-//            else {
-//                if (carryInside) {
-//                    sum += carryInside * pow(2, k);
-//                    carryInside = 0;
-//                }
-//                else
-//                    sum += 0;
-//            }
-//            k++;
-//            if (j == 4)
-//                if (sum > 9) {
-//                    sum += 6;
-//                    if (sum < 16)
-//                        carryInside = 1;
-//                    else
-//                        carryInside = 0;
-//                }
-//            if (j == 0) {
-//                unsigned char tempSum = (sum >> 4);
-//                unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
-//                if (tempSum > 9) {
-//                    tempSum += 6;
-//                    sum = (tempSum << 4) | tempSum1;
-//                    carryInside = 1;
-//                }
-//                carry = carryInside;
-//            }
-//        }
-//        result.digits.push_back(sum);
-//        digits[i] = holdDigits;
-//    }
-//    else if (other.digits.size() > i) { // dodawanie kiedy drugi wyraz jest d³u¿szy
-//        holdOtherDigits = other.digits[i];
-//        for (int j = 7; j >= 0; j--) {
-//            if (j == 7) {
-//                carryInside = carry;    //ustawienie przeniesienia z poprzedniej dwojki cyfr 
-//                carry = 0;
-//            }
-//            temp = 0;
-//            temp = ((other.digits[i] % 2) ? 1 : 0);
-//            other.digits[i] -= (temp + other.digits[i] / 2);
-//            if (temp) {
-//                if (carryInside) {
-//                    sum += 0;
-//                }
-//                else
-//                    sum += temp * pow(2, k);
-//            }
-//            else {
-//                if (carryInside) {
-//                    sum += carryInside * pow(2, k);
-//                    carryInside = 0;
-//                }
-//                else
-//                    sum += 0;
-//            }
-//            k++;
-//            if (j == 4)
-//                if (sum > 9) {
-//                    sum += 6;
-//                    if (sum < 16)
-//                        carryInside = 1;
-//                    else
-//                        carryInside = 0;
-//                }
-//            if (j == 0) {
-//                unsigned char tempSum = (sum >> 4);
-//                unsigned char tempSum1 = sum - tempSum * (pow(2, 4));
-//                if (tempSum > 9) {
-//                    tempSum += 6;
-//                    sum = (tempSum << 4) | tempSum1;
-//                    carryInside = 1;
-//                }
-//                carry = carryInside;
-//            }
-//        }
-//        result.digits.push_back(sum);
-//        other.digits[i] = holdOtherDigits;
-//    }
-//}
-//if (carry == 1) {
-//    sum = 1;
-//    result.digits.push_back(sum);
-//}
-//return result;
-//}

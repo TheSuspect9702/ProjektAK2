@@ -21,9 +21,6 @@
     <ClCompile Include="ProjektAK2.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="BCDNumberTest.cpp">
-      <Filter>test</Filter>
-    </ClCompile>
     <ClCompile Include="BCDNumber.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
