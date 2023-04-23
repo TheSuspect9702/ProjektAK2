@@ -18,23 +18,26 @@ vector<unsigned char> bcd_addition(vector<unsigned char>& vector1, vector<unsign
             // Wyci¹ganie cyfr z wektorów i dodawanie ich
             digit1 = vector1[i] & 0x0F; //wyciagniecie cyfry za pomoca operacji AND 0x0F to 00001111 czyli dla vectora[i] = przykladowo 0x32
             digit2 = vector2[i] & 0x0F; //operacja spowoduje ze wszystkie bity w vector[i] oprocz 4 najmlodszych zostana ustawione na 0 czyli otrzymujemy jednosci 
-            digit_sum = digit1 + digit2 + carry;
+            digit2 += carry;
         }
         else if (i < vector1.size()) {
             digit1 = vector1[i] & 0x0F;
-            digit_sum = digit1 + carry;
+            digit1 += carry;
         }
         else {
             digit1 = vector2[i] & 0x0F;
-            digit_sum = digit1 + carry;
+            digit1 += carry;
         }
         // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
         __asm {
+            mov al, digit1
+            add al, digit2
             aaa; korygujemy cyfry jednosci(-6 jesli wiêksze od 9 i przeniesienie = 1)
             mov digit_sum, al
             mov carry, ah
         }
-
+        digit1 = 0;
+        digit2 = 0;
         // Zapisywanie sumy cyfr do wynikowego wektora  
         result[i] |= digit_sum;
 
@@ -42,22 +45,26 @@ vector<unsigned char> bcd_addition(vector<unsigned char>& vector1, vector<unsign
         if (i < vector1.size() && i < vector2.size()) {
             digit1 = (vector1[i] >> 4) & 0x0F;
             digit2 = (vector2[i] >> 4) & 0x0F;
-            digit_sum = digit1 + digit2 + carry;
+            digit2 += carry;
         }
         else if (i < vector1.size()) {
             digit1 = (vector1[i] >> 4) & 0x0F;
-            digit_sum = digit1 + carry;
+            digit1 += carry;
         }
         else {
             digit1 = (vector2[i] >> 4) & 0x0F;
-            digit_sum = digit1 + carry;
+            digit1 += carry;
         }
         // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
         __asm {
+            mov al, digit1
+            add al, digit2
             aaa; ewentualne dodanie przeniesienia z jednosci i korekta wartosci w rejestrze al w przypadku przekroczenia wartosci 9
             mov digit_sum, al
             mov carry, ah
         }
+        digit1 = 0;
+        digit2 = 0;
         // Zapisywanie sumy dziesi¹tek do wynikowego wektora
         result[i] |= (digit_sum << 4);
         if (i == maxSize - 1 && carry) {
@@ -93,10 +100,10 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
             digit1 = vector1[i] & 0x0F;
         }
         if (digit1 <= digit2 && carry)
-            digit1++;
-        if (digit1 > digit2 && carry)
+            digit1 += 9;
+        else if (digit1 > digit2 && carry)
             digit1--;
-
+        bonuscarry = carry;
         __asm {
             mov al, digit1
             sub al, digit2
@@ -104,7 +111,7 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
             mov digit_sub, al
             mov carry, ah
         }
-        if (carry != 0)
+        if (carry != 0 || bonuscarry)
             carry = 1;
         // Zapisywanie ró¿nicy cyfr do wynikowego wektora  
         result[i] |= digit_sub;
@@ -121,6 +128,7 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
         if (digit1 <= digit2 && carry) {
             digit1 += 9;
             bonuscarry = carry;
+            carry=0;
         }
         if (digit1 > digit2 && carry)
             digit1--;
@@ -151,54 +159,76 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
 }
 
 vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<unsigned char>& vector2) {
+    BCDNumber temporary;
+    BCDNumber temporaryResult;
     unsigned char carry = 0;
+    unsigned char carry1 = 0;
     unsigned char digit1;
     unsigned char digit2;
+    unsigned char digitMultiplicant;
     unsigned char digit_mul;
+    unsigned char temp1;
+    int x = 0;
     int maxSize = max(vector1.size(), vector2.size());
     vector<unsigned char> result(maxSize, 0);
-    for (int i = 0; i < maxSize; i++) {
-        if (i < vector1.size() && i < vector2.size()) {
+    vector<unsigned char> result1(maxSize, 0);
+    for (int i = 0; i < vector2.size(); i++) {
+        x = i;
+        for (int j = 0; j < vector1.size(); j++) {
             // Wyci¹ganie cyfr z wektorów i dodawanie ich
-            digit1 = vector1[i] & 0x0F; //wyciagniecie cyfry za pomoca operacji AND 0x0F to 00001111 czyli dla vectora[i] = przykladowo 0x32
-            digit2 = vector2[i] & 0x0F; //operacja spowoduje ze wszystkie bity w vector[i] oprocz 4 najmlodszych zostana ustawione na 0 czyli otrzymujemy jednosci 
-        }
-        else if (i < vector1.size()) {
-            digit1 = vector1[i] & 0x0F;
-        }
-        else {
-            digit1 = vector2[i] & 0x0F;
-        }
-        // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
-        __asm {
-            aam; korygujemy cyfry jednosci(-6 jesli wiêksze od 9 i przeniesienie = 1)
-            mov digit_mul, al
-            mov carry, ah
-        }
+            digit1 = vector1[j] & 0x0F; //wyciagniecie cyfry za pomoca operacji AND 0x0F to 00001111 czyli dla vectora[i] = przykladowo 0x32
+            digit2 = (vector1[j] >> 4) & 0x0F;; //operacja spowoduje ze wszystkie bity w vector[i] oprocz 4 najmlodszych zostana ustawione na 0 czyli otrzymujemy jednosci 
+            digitMultiplicant = vector2[i] & 0x0F;
+            __asm {
+                mov al, digit1
+                mul digitMultiplicant; mnozymy 0x razy 0x
+                aam
+                mov digit_mul, al
+                mov carry, ah
+            }
+            result[x] |= digit_mul;
+            temp1 = carry;
+            __asm {
+                mov al, digit2
+                mul digitMultiplicant
+                aam
+                mov digit_mul, al
+                mov carry, ah
+                add al, temp1
+                aaa
+                mov digit_mul, al
+                mov carry1, ah; przeniesienie z mnozenia x0* 0x wpisujemy carry1
+            }
+            // Zapisywanie sumy cyfr do wynikowego wektora  
 
-        // Zapisywanie sumy cyfr do wynikowego wektora  
-        result[i] |= digit_mul;
-
-        // Wyci¹ganie cyfr dziesi¹tek z wektorów i dodawanie ich
-        if (i < vector1.size() && i < vector2.size()) {
-            digit1 = (vector1[i] >> 4) & 0x0F;
-            digit2 = (vector2[i] >> 4) & 0x0F;
+            result[x] |= (digit_mul << 4);
+            digitMultiplicant = (vector2[i] >>4) & 0x0F;
+            __asm {
+                mov al, digit1
+                mul digitMultiplicant; mnozymy 0x razy 0x
+                aam
+                mov digit_mul, al
+                mov carry, ah
+            }
+            result1[x] |= (digit_mul << 4);
+            temp1 = carry;
+            __asm {
+                mov al, digit2
+                mul digitMultiplicant
+                aam
+                mov digit_mul, al
+                mov carry, ah
+                add al, temp1
+                aaa
+                mov digit_mul, al
+                mov carry1, ah; przeniesienie z mnozenia x0* 0x wpisujemy carry1
+            }
+            result1.push_back(digit_mul);
+            x++;
         }
-        else if (i < vector1.size()) {
-            digit1 = (vector1[i] >> 4) & 0x0F;
-        }
-        else {
-            digit1 = (vector2[i] >> 4) & 0x0F;
-        }
-        // Wywo³anie instrukcji AAA, aby skorygowaæ sumê
-        __asm {
-            aam; ewentualne dodanie przeniesienia z jednosci i korekta wartosci w rejestrze al w przypadku przekroczenia wartosci 9
-            mov digit_mul, al
-            mov carry, ah
-        }
-        // Zapisywanie sumy dziesi¹tek do wynikowego wektora
-        result[i] |= (digit_mul << 4);
     }
+    if (carry1 != 0)
+        result.push_back(carry1);
     return result;
 }
 
@@ -249,6 +279,12 @@ string BCDNumber::toString() {
         y = digit & 0x0F;
         str.insert(str.begin(), y + '0');
         str.insert(str.begin(), x + '0');
+    }
+    while (str.substr(0, 1) == "0") {
+        if (str.length() > 1)
+            str.erase(0, 1);
+        else
+            break;
     }
     return str;
 }
