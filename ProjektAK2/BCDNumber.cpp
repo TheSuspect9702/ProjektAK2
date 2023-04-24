@@ -101,9 +101,11 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
         }
         if (digit1 <= digit2 && carry)
             digit1 += 9;
-        else if (digit1 > digit2 && carry)
+        else if (digit1 > digit2 && carry) {
+            carry--;
             digit1--;
-        bonuscarry = carry;
+        }
+            bonuscarry = carry;
         __asm {
             mov al, digit1
             sub al, digit2
@@ -130,8 +132,11 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
             bonuscarry = carry;
             carry=0;
         }
-        if (digit1 > digit2 && carry)
+        if (digit1 > digit2 && carry) {
             digit1--;
+            bonuscarry = 0;
+            carry--;
+        }
         __asm {
             mov al, digit1
             sub al, digit2
