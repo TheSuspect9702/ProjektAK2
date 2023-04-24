@@ -19,7 +19,7 @@ public:
     BCDNumber operator/(BCDNumber& other);
 
     std::string toString();
-private:
+
     std::vector<unsigned char> digits;
 };
 
