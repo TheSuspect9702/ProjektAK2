@@ -180,8 +180,6 @@ vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<
         x = i;
         result1.clear();
         result.clear();
-        for (int k = x; k > 0; k--)
-            result1.push_back(0);
         for (int j = 0; j < vector1.size(); j++) {
             // Wyci¹ganie cyfr z wektorów i dodawanie ich
             digit1 = vector1[j] & 0x0F; //wyciagniecie cyfry za pomoca operacji AND 0x0F to 00001111 czyli dla vectora[i] = przykladowo 0x32
@@ -337,6 +335,8 @@ vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<
             x++;
         }
         x = i;
+        for (int k = x; k > 0; k--)
+            result1.push_back(0);
         string str;
         str.reserve(result.size());
         int z;
@@ -362,6 +362,7 @@ vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<
             str.push_back('0');
         BCDNumber temporaryResult(str);
         finalResult = temporary + temporaryResult + finalResult;
+        cout << finalResult.toString() << endl;
     }
     if (carry1 != 0)
         result.push_back(carry1);
@@ -395,6 +396,7 @@ BCDNumber::BCDNumber(string str) {
         digits.insert(digits.begin(), move);
     }
 }
+
 BCDNumber::BCDNumber(char value) {
     int x;
     int y;
