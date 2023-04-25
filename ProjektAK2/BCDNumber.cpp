@@ -295,8 +295,7 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
             }
         }
     }
-    result.digits = bcd_substraction(digits, other.digits);
-
+    
     return result;
 }
 
