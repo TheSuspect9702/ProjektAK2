@@ -74,13 +74,6 @@ vector<unsigned char> bcd_addition(vector<unsigned char>& vector1, vector<unsign
     return result;
 }
 
-BCDNumber BCDNumber::operator+(BCDNumber& other) {
-    BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_addiction
-    result.digits = bcd_addition(digits, other.digits);
-
-    return result;
-}
-
 vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<unsigned char>& vector2) {
     unsigned char carry = 0;
     unsigned char bonuscarry = 0;
@@ -105,7 +98,7 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
             carry--;
             digit1--;
         }
-            bonuscarry = carry;
+        bonuscarry = carry;
         __asm {
             mov al, digit1
             sub al, digit2
@@ -130,7 +123,7 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
         if (digit1 <= digit2 && carry) {
             digit1 += 9;
             bonuscarry = carry;
-            carry=0;
+            carry = 0;
         }
         if (digit1 > digit2 && carry) {
             digit1--;
@@ -148,7 +141,7 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
             carry = 1;
             bonuscarry = 0;
         }
-        
+
 
         // Zapisywanie ró¿nicy dziesi¹tek do wynikowego wektora
         result[i] |= (digit_sub << 4);
@@ -156,8 +149,152 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
     return result;
 }
 
+BCDNumber BCDNumber::operator+(BCDNumber& other) {
+    BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_addiction
+    int i = 0;
+    if (sign == other.sign)
+    {
+        result.digits = bcd_addition(digits, other.digits);
+        result.sign = sign;
+    }
+    else if (sign) {
+        if (digits.size() > other.digits.size()) {
+            result.digits = bcd_substraction(digits, other.digits); //sprawdzic ktora liczba jest wieksza i ustawic odpowiedni znak ewentualnie odpowiednia kolejnosc odejmowania
+            result.sign = sign;
+        }
+        else if (digits.size() == other.digits.size()) {
+            i = digits.size() -1;
+            while (digits[i] == other.digits[i]) {
+                if (i == 0)
+                    break;
+                i--;
+            }
+            if (i == 0 && other.digits[i] == digits[i]) {
+                result.digits = bcd_substraction(digits, other.digits);
+                result.sign = false;
+            }
+            else if (digits[i] > other.digits[i]) {
+                result.digits = bcd_substraction(digits, other.digits);
+                result.sign = true;
+            }
+            else {
+                result.digits = bcd_substraction(other.digits, digits);
+                result.sign = false;
+            }
+        }
+        else {
+            result.digits = bcd_substraction(other.digits, digits);
+            result.sign = false;
+        }
+    }
+    else {
+        if (digits.size() > other.digits.size()) {
+            result.digits = bcd_substraction(digits, other.digits); //sprawdzic ktora liczba jest wieksza i ustawic odpowiedni znak ewentualnie odpowiednia kolejnosc odejmowania
+            result.sign = false;
+        }
+        else if (digits.size() == other.digits.size()) {
+            i = digits.size() - 1;
+            while (digits[i] == other.digits[i]) {
+                if (i == 0)
+                    break;
+                i--;
+            }
+            if (i == 0 && other.digits[i] == digits[i]) {
+                result.digits = bcd_substraction(digits, other.digits);
+                result.sign = false;
+            }
+            else if (digits[i] > other.digits[i]) {
+                result.digits = bcd_substraction(digits, other.digits);
+                result.sign = false;
+            }
+            else {
+                result.digits = bcd_substraction(other.digits, digits);
+                result.sign = true;
+            }
+        }
+        else {
+            result.digits = bcd_substraction(other.digits, digits);
+            result.sign = true;
+        }
+    }
+    return result;
+}
+
 BCDNumber BCDNumber::operator-(BCDNumber& other) {
     BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_substraction
+    int i = 0;
+    if (sign) {
+        if (other.sign) {
+            if (digits.size() == other.digits.size()) {
+                i = digits.size() - 1;
+                while (digits[i] == other.digits[i]) {
+                    if (i == 0)
+                        break;
+                    i--;
+                }
+                if (digits[i] == other.digits[i]) {
+                    result.digits = bcd_substraction(digits, other.digits);
+                    result.sign = false;
+                }
+                else if (digits[i] > other.digits[i]) {
+                    result.digits = bcd_substraction(digits, other.digits);
+                    result.sign = true;
+                }
+                else {
+                    result.digits = bcd_substraction(other.digits, digits);
+                    result.sign = false;
+                }
+            }
+            else if (digits.size() > other.digits.size()) {
+                result.digits = bcd_substraction(digits, other.digits);
+                result.sign = true;
+            }
+            else {
+                result.digits = bcd_substraction(other.digits, digits);
+                result.sign = false;
+            }
+        }
+        else {
+            result.digits = bcd_addition(digits, other.digits);
+            result.sign = true;
+        }
+    }
+    else {
+        if (other.sign) {
+            result.digits = bcd_addition(digits, other.digits);
+            result.sign = false;
+        }
+        else {
+            if (digits.size() == other.digits.size()) {
+                i = digits.size() - 1;
+                while (digits[i] == other.digits[i]) {
+                    if (i == 0)
+                        break;
+                    i--;
+                }
+                if (digits[i] == other.digits[i]) {
+                    result.digits = bcd_substraction(digits, other.digits);
+                    result.sign = false;
+                }
+                else if (digits[i] > other.digits[i]) {
+                    result.digits = bcd_substraction(digits, other.digits);
+                    result.sign = false;
+                }
+                else {
+                    result.digits = bcd_substraction(other.digits, digits);
+                    result.sign = true;
+                }
+            }
+            else if (digits.size() > other.digits.size()) {
+                result.digits = bcd_substraction(digits, other.digits);
+                result.sign = false;
+            }
+            else {
+                result.digits = bcd_substraction(other.digits,digits);
+                result.sign = true;
+            }
+        }
+    }
     result.digits = bcd_substraction(digits, other.digits);
 
     return result;
@@ -362,7 +499,6 @@ vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<
             str.push_back('0');
         BCDNumber temporaryResult(str);
         finalResult = temporary + temporaryResult + finalResult;
-        cout << finalResult.toString() << endl;
     }
     if (carry1 != 0)
         result.push_back(carry1);
@@ -373,7 +509,10 @@ vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<
 BCDNumber BCDNumber::operator*(BCDNumber& other) {
     BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_substraction
     result.digits = bcd_multiplication(digits, other.digits);
-
+    if (sign == other.sign)
+        result.sign = false;
+    else
+        result.sign = true;
     return result;
     
 }
@@ -386,6 +525,12 @@ BCDNumber::BCDNumber(string str) {
     int y;
     int z;
     unsigned char move;
+    if (str.substr(0, 1) == "-") {
+        sign = true;
+        str.erase(0, 1);
+    }
+    else
+        sign = false;
     if (str.size() % 2)
         str.insert(0, "0");
     for (int i = 0; i < str.size(); i += 2) {
@@ -398,6 +543,7 @@ BCDNumber::BCDNumber(string str) {
 }
 
 BCDNumber::BCDNumber(char value) {
+    sign = false;
     int x;
     int y;
     unsigned char move;
@@ -425,5 +571,7 @@ string BCDNumber::toString() {
         else
             break;
     }
+    if (sign)
+        str.insert(str.begin(), '-');
     return str;
 }

@@ -18,8 +18,8 @@ public:
     BCDNumber operator*(BCDNumber& other);
     BCDNumber operator/(BCDNumber& other);
 
+    bool sign; // true - liczba jest ujemna, false liczba jest dodatnia
     std::string toString();
-
     std::vector<unsigned char> digits;
 };
 
