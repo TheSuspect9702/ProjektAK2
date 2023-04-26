@@ -92,8 +92,13 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
         else if (i < vector1.size()) {
             digit1 = vector1[i] & 0x0F;
         }
-        if (digit1 <= digit2 && carry)
+        if (digit1 <= digit2 && carry) {
             digit1 += 9;
+            if (digit1 > 15) { //tak zeby dzialalo a czy nie mozna zrobic tego lepiej?
+                digit1 -= 4;
+                digit2 -= 4;
+            }
+        }
         else if (digit1 > digit2 && carry) {
             carry--;
             digit1--;
@@ -122,6 +127,10 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
         // Wywo³anie instrukcji AAS, aby skorygowaæ ró¿nicê
         if (digit1 <= digit2 && carry) {
             digit1 += 9;
+            if (digit1 > 15) {
+                digit1 -= 4;
+                digit2 -= 4;
+            }
             bonuscarry = carry;
             carry = 0;
         }
