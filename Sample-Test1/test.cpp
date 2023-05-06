@@ -18,6 +18,11 @@ TEST(BCDNumTest0, MUL) {
 	EXPECT_EQ(c.toString(), "110999");
 	EXPECT_TRUE(true);
 }
+TEST(BCDNumTest0, DIV) {
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "10");
+	EXPECT_TRUE(true);
+}
 TEST(BCDNumTest1, ADD) {
   a = BCDNumber("999");
   BCDNumber c = a + b;
@@ -32,6 +37,11 @@ TEST(BCDNumTest1, SUB) {
 TEST(BCDNumTest1, MUL) {
 	BCDNumber c = a * b;
 	EXPECT_EQ(c.toString(), "100899");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest1, DIV) {
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "9");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest2, ADD) {
@@ -51,6 +61,11 @@ TEST(BCDNumTest2, MUL) {
 	EXPECT_EQ(d.toString(), "1207801");
 	EXPECT_TRUE(true);
 }
+TEST(BCDNumTest2, DIV) {
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "1");
+	EXPECT_TRUE(true);
+}
 TEST(BCDNumTest3, ADD) {
 	a = BCDNumber("10992421645");
 	b = BCDNumber("10992137525");
@@ -66,6 +81,11 @@ TEST(BCDNumTest3, SUB) {
 TEST(BCDNumTest3, MUL) {
 	BCDNumber c = a * b;
 	EXPECT_EQ(c.toString(), "120830210454626728625");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest3, DIV) {
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "1");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest4, ADD) {
@@ -85,6 +105,11 @@ TEST(BCDNumTest4, MUL) {
 	EXPECT_EQ(c.toString(), "596364235992");
 	EXPECT_TRUE(true);
 }
+TEST(BCDNumTest4, DIV) {
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "0");
+	EXPECT_TRUE(true);
+}
 TEST(BCDNumTest5, ADD) {
 	a = BCDNumber("0");
 	b = BCDNumber("8420");
@@ -99,6 +124,11 @@ TEST(BCDNumTest5, SUB) {
 }
 TEST(BCDNumTest5, MUL) {
 	BCDNumber c = a * b;
+	EXPECT_EQ(c.toString(), "0");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest5, DIV) {
+	BCDNumber c = a / b;
 	EXPECT_EQ(c.toString(), "0");
 	EXPECT_TRUE(true);
 }
@@ -119,6 +149,11 @@ TEST(BCDNumTest6, MUL) {
 	EXPECT_EQ(c.toString(), "56301363685425924");
 	EXPECT_TRUE(true);
 }
+TEST(BCDNumTest6, DIV) {
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "13");
+	EXPECT_TRUE(true);
+}
 TEST(BCDNumTest7, ADD) {
 	a = BCDNumber("21562554526325");
 	b = BCDNumber("21562554228522");
@@ -134,6 +169,11 @@ TEST(BCDNumTest7, SUB) {
 TEST(BCDNumTest7, MUL) {
 	BCDNumber c = a * b;
 	EXPECT_EQ(c.toString(), "464943751279345319514841650");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest7, DIV) {
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "1");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest8, ADD) {
@@ -153,6 +193,11 @@ TEST(BCDNumTest8, MUL) {
 	EXPECT_EQ(c.toString(), "999000");
 	EXPECT_TRUE(true);
 }
+TEST(BCDNumTest8, DIV) {
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "1");
+	EXPECT_TRUE(true);
+}
 TEST(BCDNumTest9, ADD) {
 	a = BCDNumber("121399218");
 	b = BCDNumber("32192193712");
@@ -168,5 +213,10 @@ TEST(BCDNumTest9, SUB) {
 TEST(BCDNumTest9, MUL) {
 	BCDNumber c = a * b;
 	EXPECT_EQ(c.toString(), "3908107142341317216");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest9, DIV) {
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "0");
 	EXPECT_TRUE(true);
 }

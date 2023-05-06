@@ -3,7 +3,7 @@
 using namespace std;
 int main(int argc, char ** argv)
 {//                22              15              
-    string a = "1007", b = "5"; // digits[0] to koniec liczby 
+    string a = "875312387", b = "64321452"; // digits[0] to koniec liczby 
     BCDNumber num1(a);
     BCDNumber num2(b);
     BCDNumber sum = num1 + num2;

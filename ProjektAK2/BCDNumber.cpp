@@ -7,7 +7,8 @@
 using namespace std;
 //                  licznik (liczba dzielona)   mianownik (to przez co dzielimy)
 bool isGreater(vector<unsigned char> vector1, vector<unsigned char> vector2) {
-    
+    if (vector2.size() > vector1.size())
+        return true;
     for (int i = vector1.size()-1; i >=0; i--) {
         if (vector1[i] < vector2[i])
             return true;    //zwraca prawde kiedy mianownik jest wiekszy od licznika tez do przerobienia
@@ -387,15 +388,29 @@ vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsign
     vector<unsigned char> temp;
     vector<unsigned char> temp1;
     int x = 0;
-    temp1 = vector1;
     for (int i = vector1.size()-1; i >= 0; i--) {
-        temp.insert(temp.begin(), temp1[i] >> 4 & 0x0F); //do przerobienia
+        temp.insert(temp.begin(), vector1[i] & 0xF0); //do przerobienia
         while (1) {
-            if (temp.size() != vector2.size()) {
+            while (temp.size() != vector2.size() && vector2.size() < temp.size()) {
                 vector2.push_back(0);
             }
+            temp1 = temp;
+            for (int j = 0; j < temp.size(); j++) {
+                if (j + 1 < temp.size()) {
+                    temp[j] = temp[j] >> 4;
+                    temp[j] |= (temp[j + 1] & 0x0F )<< 4;
+                }
+                else 
+                    temp[j] = temp[j] >> 4;
+            }
             if (isGreater(temp, vector2)) {
-                temp[0] = temp1[i];
+                for (int j = temp.size()-1; j >= 0; j--) {
+                    temp[j] = temp[j] << 4;
+                    if (j != 0) {
+                        temp[j] |= (temp[j - 1] & 0xF0) >> 4;
+                    }
+                }
+                temp[0] = vector1[i];
                 break;
             }
             else {
@@ -404,6 +419,12 @@ vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsign
                 b.digits = vector2;
                 a.digits = (a - b).digits;
                 temp = a.digits;
+            }
+            for (int j = temp.size() - 1; j >= 0; j--) {
+                temp[j] = temp[j] << 4;
+                if (j != 0) {
+                    temp[j] |= (temp[j - 1] & 0xF0) >> 4;
+                }
             }
         }
         while (1) {
@@ -420,6 +441,11 @@ vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsign
             }
         }
     }
+    /*
+    OBLICZANIE PO PRZECINKU
+    
+    
+    */
     return result;
 }
 
@@ -588,6 +614,10 @@ BCDNumber BCDNumber::operator/(BCDNumber& other) {
     BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_substraction
     result.digits = bcd_division(digits, other.digits);
     reverse(result.digits.begin(), result.digits.end());
+    if (sign == other.sign)
+        result.sign = false;
+    else
+        result.sign = true;
     return result;
 }
 
