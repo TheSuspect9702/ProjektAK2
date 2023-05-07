@@ -452,17 +452,30 @@ vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsign
 BCDNumber BCDNumber::operator+(BCDNumber& other) {
     BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_addiction
     int i = 0;
+    result.comma = max(comma, other.comma);
+    if (comma > other.comma) {
+        for (int j = comma - other.comma / 2; j > 0; j-=2) {
+            other.digits.insert(other.digits.begin(), 0);
+            other.comma += 2;
+        }
+    }
+    else if (comma < other.comma) {
+        for (int j = other.comma - comma / 2; j > 0; j-=2) {
+            digits.insert(digits.begin(), 0);
+            comma += 2;
+        }
+    }
     if (sign == other.sign)
     {
         result.digits = bcd_addition(digits, other.digits);
         result.sign = sign;
     }
     else if (sign) {
-        if (digits.size() > other.digits.size()) {
+        if (digits.size() - comma > other.digits.size() - other.comma) {
             result.digits = bcd_substraction(digits, other.digits); //sprawdzic ktora liczba jest wieksza i ustawic odpowiedni znak ewentualnie odpowiednia kolejnosc odejmowania
             result.sign = sign;
         }
-        else if (digits.size() == other.digits.size()) {
+        else if (digits.size() - comma == other.digits.size() - other.comma) {
             i = digits.size() -1;
             while (digits[i] == other.digits[i]) {
                 if (i == 0)
@@ -488,11 +501,11 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
         }
     }
     else {
-        if (digits.size() > other.digits.size()) {
+        if (digits.size() - comma > other.digits.size() - other.comma) {
             result.digits = bcd_substraction(digits, other.digits); //sprawdzic ktora liczba jest wieksza i ustawic odpowiedni znak ewentualnie odpowiednia kolejnosc odejmowania
             result.sign = false;
         }
-        else if (digits.size() == other.digits.size()) {
+        else if (digits.size() - comma == other.digits.size() - other.comma) {
             i = digits.size() - 1;
             while (digits[i] == other.digits[i]) {
                 if (i == 0)
@@ -523,9 +536,22 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
 BCDNumber BCDNumber::operator-(BCDNumber& other) {
     BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_substraction
     int i = 0;
+    result.comma = max(comma, other.comma);
+    if (comma > other.comma) {
+        for (int j = comma - other.comma / 2; j > 0; j -= 2) {
+            other.digits.insert(other.digits.begin(), 0);
+            other.comma += 2;
+        }
+    }
+    else if (comma < other.comma) {
+        for (int j = other.comma - comma / 2; j > 0; j -= 2) {
+            digits.insert(digits.begin(), 0);
+            comma += 2;
+        }
+    }
     if (sign) {
         if (other.sign) {
-            if (digits.size() == other.digits.size()) {
+            if (digits.size() - comma == other.digits.size() - other.comma) {
                 i = digits.size() - 1;
                 while (digits[i] == other.digits[i]) {
                     if (i == 0)
@@ -545,7 +571,7 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
                     result.sign = false;
                 }
             }
-            else if (digits.size() > other.digits.size()) {
+            else if (digits.size() - comma > other.digits.size() - other.comma) {
                 result.digits = bcd_substraction(digits, other.digits);
                 result.sign = true;
             }
@@ -565,7 +591,7 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
             result.sign = false;
         }
         else {
-            if (digits.size() == other.digits.size()) {
+            if (digits.size() - comma == other.digits.size() - other.comma) {
                 i = digits.size() - 1;
                 while (digits[i] == other.digits[i]) {
                     if (i == 0)
@@ -585,7 +611,7 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
                     result.sign = true;
                 }
             }
-            else if (digits.size() > other.digits.size()) {
+            else if (digits.size() - comma > other.digits.size() - other.comma) {
                 result.digits = bcd_substraction(digits, other.digits);
                 result.sign = false;
             }
@@ -606,6 +632,7 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
         result.sign = false;
     else
         result.sign = true;
+    result.comma = comma + other.comma;
     return result;
     
 }
@@ -613,6 +640,7 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
 BCDNumber BCDNumber::operator/(BCDNumber& other) {
     BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_substraction
     result.digits = bcd_division(digits, other.digits);
+    result.comma = 0;
     reverse(result.digits.begin(), result.digits.end());
     if (sign == other.sign)
         result.sign = false;
@@ -629,12 +657,24 @@ BCDNumber::BCDNumber(string str) {
     int y;
     int z;
     unsigned char move;
+    comma = 0;
     if (str.substr(0, 1) == "-") {
         sign = true;
         str.erase(0, 1);
     }
     else
         sign = false;
+    for (int i = str.size() - 1; i >= 0; i--) {
+        if (str.substr(i, 1) == ",") {
+            str.erase(i, 1);
+            comma = str.size() - i;
+            break;
+        }
+    }
+    if (comma % 2 == 1) {
+        str.insert(str.end(), '0');
+        comma++;
+    }
     if (str.size() % 2)
         str.insert(0, "0");
     for (int i = 0; i < str.size(); i += 2) {
@@ -675,7 +715,16 @@ string BCDNumber::toString() {
         else
             break;
     }
+    if (comma != 0)
+        str.insert(str.size() - comma, ",");
     if (sign)
         str.insert(str.begin(), '-');
+    for(int i = comma; i>0;i--){
+        if (str[str.size() - 1] != '0')
+            break;
+        str.erase(str.size()-1, 1);
+        if (i == 1)
+            str.erase(str.size() - 1, 1);
+    }
     return str;
 }
