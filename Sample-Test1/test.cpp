@@ -20,7 +20,7 @@ TEST(BCDNumTest0, MUL) {
 }
 TEST(BCDNumTest0, DIV) {
 	BCDNumber c = a / b;
-	EXPECT_EQ(c.toString(), "10");
+	EXPECT_EQ(c.toString(), "10,8811881188");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest1, ADD) {
@@ -41,7 +41,7 @@ TEST(BCDNumTest1, MUL) {
 }
 TEST(BCDNumTest1, DIV) {
 	BCDNumber c = a / b;
-	EXPECT_EQ(c.toString(), "9");
+	EXPECT_EQ(c.toString(), "9,8910891089");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest2, ADD) {
@@ -85,7 +85,7 @@ TEST(BCDNumTest3, MUL) {
 }
 TEST(BCDNumTest3, DIV) {
 	BCDNumber c = a / b;
-	EXPECT_EQ(c.toString(), "1");
+	EXPECT_EQ(c.toString(), "1,0000258475");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest4, ADD) {
@@ -107,7 +107,7 @@ TEST(BCDNumTest4, MUL) {
 }
 TEST(BCDNumTest4, DIV) {
 	BCDNumber c = a / b;
-	EXPECT_EQ(c.toString(), "0");
+	EXPECT_EQ(c.toString(), "0,0007784338");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest5, ADD) {
@@ -151,7 +151,7 @@ TEST(BCDNumTest6, MUL) {
 }
 TEST(BCDNumTest6, DIV) {
 	BCDNumber c = a / b;
-	EXPECT_EQ(c.toString(), "13");
+	EXPECT_EQ(c.toString(), "13,6084052797");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest7, ADD) {
@@ -173,7 +173,7 @@ TEST(BCDNumTest7, MUL) {
 }
 TEST(BCDNumTest7, DIV) {
 	BCDNumber c = a / b;
-	EXPECT_EQ(c.toString(), "1");
+	EXPECT_EQ(c.toString(), "1,0000000138");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest8, ADD) {
@@ -195,7 +195,7 @@ TEST(BCDNumTest8, MUL) {
 }
 TEST(BCDNumTest8, DIV) {
 	BCDNumber c = a / b;
-	EXPECT_EQ(c.toString(), "1");
+	EXPECT_EQ(c.toString(), "1,001001001");
 	EXPECT_TRUE(true);
 }
 TEST(BCDNumTest9, ADD) {
@@ -217,6 +217,47 @@ TEST(BCDNumTest9, MUL) {
 }
 TEST(BCDNumTest9, DIV) {
 	BCDNumber c = a / b;
-	EXPECT_EQ(c.toString(), "0");
+	EXPECT_EQ(c.toString(), "0,0037710762");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest10, DIV) {
+	a = BCDNumber("16");
+	b = BCDNumber("5");
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "3,2");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest11, DIV) {
+	b = BCDNumber("3");
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "5,3333333333");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest12, DIV) {
+	a = BCDNumber("10");
+	b = BCDNumber("0");
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "?");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest13, DIV) {
+	a = BCDNumber("4");
+	b = BCDNumber("5");
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "0,8");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest14, DIV) {
+	a = BCDNumber("5");
+	b = BCDNumber("4");
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "1,25");
+	EXPECT_TRUE(true);
+}
+TEST(BCDNumTest15, DIV) {
+	a = BCDNumber("1");
+	b = BCDNumber("6");
+	BCDNumber c = a / b;
+	EXPECT_EQ(c.toString(), "0,1666666666");
 	EXPECT_TRUE(true);
 }

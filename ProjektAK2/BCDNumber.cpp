@@ -378,7 +378,7 @@ vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<
     return finalResult.digits;
 }
 
-vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsigned char> vector2) {
+vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsigned char> vector2, int &comma) {
     BCDNumber a;
     BCDNumber b;
     unsigned char digit1;
@@ -388,6 +388,7 @@ vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsign
     vector<unsigned char> temp;
     vector<unsigned char> temp1;
     int x = 0;
+    int precision = 5;
     for (int i = vector1.size()-1; i >= 0; i--) {
         temp.insert(temp.begin(), vector1[i] & 0xF0); //do przerobienia
         while (1) {
@@ -410,7 +411,7 @@ vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsign
                         temp[j] |= (temp[j - 1] & 0xF0) >> 4;
                     }
                 }
-                temp[0] = vector1[i];
+                temp[0] |= vector1[i] & 0x0F;
                 break;
             }
             else {
@@ -441,11 +442,64 @@ vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsign
             }
         }
     }
-    /*
-    OBLICZANIE PO PRZECINKU
-    
-    
-    */
+
+    while (precision > 0) {
+        temp.insert(temp.begin(), 0); //do przerobienia
+        result.push_back(0);
+        while (1) {
+            while (temp.size() != vector2.size() && vector2.size() < temp.size()) {
+                vector2.push_back(0);
+            }
+            temp1 = temp;
+            for (int j = 0; j < temp.size(); j++) {
+                if (j + 1 < temp.size()) {
+                    temp[j] = temp[j] >> 4;
+                    temp[j] |= (temp[j + 1] & 0x0F) << 4;
+                }
+                else
+                    temp[j] = temp[j] >> 4;
+            }
+            if (isGreater(temp, vector2)) {
+                for (int j = temp.size() - 1; j >= 0; j--) {
+                    temp[j] = temp[j] << 4;
+                    if (j != 0) {
+                        temp[j] |= (temp[j - 1] & 0xF0) >> 4;
+                    }
+                }
+                break;
+            }
+            else {
+                result[x] += 16;
+                a.digits = temp;
+                b.digits = vector2;
+                a.digits = (a - b).digits;
+                temp = a.digits;
+            }
+            for (int j = temp.size() - 1; j >= 0; j--) {
+                temp[j] = temp[j] << 4;
+                if (j != 0) {
+                    temp[j] |= (temp[j - 1] & 0xF0) >> 4;
+                }
+            }
+        }
+        while (1) {
+            if (isGreater(temp, vector2)) {
+                x++;
+                break;
+            }
+            else {
+                result[x] += 1;
+                a.digits = temp;
+                b.digits = vector2;
+                a.digits = (a - b).digits;
+                temp = a.digits;
+            }
+        }
+        comma += 2;
+        precision--;
+    }
+  
+
     return result;
 }
 
@@ -636,11 +690,14 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
     return result;
     
 }
-// Konstruktor, tworz¹cy BCDNumber o wartoœci 0
+
 BCDNumber BCDNumber::operator/(BCDNumber& other) {
-    BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_substraction
-    result.digits = bcd_division(digits, other.digits);
+    BCDNumber result; // dorobic dopasowanie liczb przed dzieleniem (zrobic przesuniecia comma i dopisywanie 0 ewentualne)
     result.comma = 0;
+    if (other.digits[0] == 0 && other.digits.size() == 1)
+        result.digits.push_back(15);
+    else
+        result.digits = bcd_division(digits, other.digits, result.comma);
     reverse(result.digits.begin(), result.digits.end());
     if (sign == other.sign)
         result.sign = false;
@@ -687,6 +744,7 @@ BCDNumber::BCDNumber(string str) {
 }
 
 BCDNumber::BCDNumber(char value) {
+    comma = 0;
     sign = false;
     int x;
     int y;
@@ -710,7 +768,7 @@ string BCDNumber::toString() {
         str.insert(str.begin(), x + '0');
     }
     while (str.substr(0, 1) == "0") {
-        if (str.length() > 1)
+        if (str.length() - comma > 1)
             str.erase(0, 1);
         else
             break;
