@@ -508,13 +508,13 @@ BCDNumber BCDNumber::operator+(BCDNumber& other) {
     int i = 0;
     result.comma = max(comma, other.comma);
     if (comma > other.comma) {
-        for (int j = comma - other.comma / 2; j > 0; j-=2) {
+        while (comma != other.comma) {
             other.digits.insert(other.digits.begin(), 0);
             other.comma += 2;
         }
     }
     else if (comma < other.comma) {
-        for (int j = other.comma - comma / 2; j > 0; j-=2) {
+        while (comma != other.comma) {
             digits.insert(digits.begin(), 0);
             comma += 2;
         }
@@ -592,13 +592,13 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
     int i = 0;
     result.comma = max(comma, other.comma);
     if (comma > other.comma) {
-        for (int j = comma - other.comma / 2; j > 0; j -= 2) {
+        while (comma != other.comma) {
             other.digits.insert(other.digits.begin(), 0);
             other.comma += 2;
         }
     }
     else if (comma < other.comma) {
-        for (int j = other.comma - comma / 2; j > 0; j -= 2) {
+        while (comma != other.comma) {
             digits.insert(digits.begin(), 0);
             comma += 2;
         }
