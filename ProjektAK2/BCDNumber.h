@@ -18,7 +18,7 @@ public:
     BCDNumber operator*(BCDNumber& other);
     BCDNumber operator/(BCDNumber& other);
 
-    int comma;
+    unsigned long long comma;
     bool sign; // true - liczba jest ujemna, false liczba jest dodatnia
     std::string toString();
     std::vector<unsigned char> digits;

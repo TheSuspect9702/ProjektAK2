@@ -108,7 +108,7 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
         }
         if (digit1 <= digit2 && carry) {
             digit1 += 9;
-            if (digit1 > 15) { //tak zeby dzialalo a czy nie mozna zrobic tego lepiej?
+            if (digit1 > 15) {
                 digit1 -= 4;
                 digit2 -= 4;
             }
@@ -164,8 +164,6 @@ vector<unsigned char> bcd_substraction(vector<unsigned char>& vector1, vector<un
             carry = 1;
             bonuscarry = 0;
         }
-
-
         // Zapisywanie ró¿nicy dziesi¹tek do wynikowego wektora
         result[i] |= (digit_sub << 4);
     }
@@ -378,7 +376,7 @@ vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<
     return finalResult.digits;
 }
 
-vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsigned char> vector2, int &comma) {
+vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsigned char> vector2, unsigned long long &comma, unsigned long long comma1) {
     BCDNumber a;
     BCDNumber b;
     unsigned char digit1;
@@ -388,7 +386,7 @@ vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsign
     vector<unsigned char> temp;
     vector<unsigned char> temp1;
     int x = 0;
-    int precision = 5;
+    int precision = comma1/2;
     for (int i = vector1.size()-1; i >= 0; i--) {
         temp.insert(temp.begin(), vector1[i] & 0xF0); //do przerobienia
         while (1) {
@@ -499,7 +497,6 @@ vector<unsigned char> bcd_division(vector<unsigned char>& vector1, vector<unsign
         precision--;
     }
   
-
     return result;
 }
 
@@ -681,6 +678,14 @@ BCDNumber BCDNumber::operator-(BCDNumber& other) {
 
 BCDNumber BCDNumber::operator*(BCDNumber& other) {
     BCDNumber result; // tworzymy result do którego bêdziemy "doklejac" kolejne cyfry wyniku w petli for w bcd_substraction
+    while (digits[0] == 0 && comma >= 2) {
+        digits.erase(digits.begin());
+        comma -= 2;
+    }
+    while (other.digits[0] == 0 && other.comma >= 2) {
+        other.digits.erase(other.digits.begin());
+        other.comma -= 2;
+    }
     result.digits = bcd_multiplication(digits, other.digits);
     if (sign == other.sign)
         result.sign = false;
@@ -694,10 +699,42 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
 BCDNumber BCDNumber::operator/(BCDNumber& other) {
     BCDNumber result; // dorobic dopasowanie liczb przed dzieleniem (zrobic przesuniecia comma i dopisywanie 0 ewentualne)
     result.comma = 0;
+    unsigned long long j = 0;
+    unsigned long long k = 0;
+    while (digits[0] == 0 && comma >= 2) {
+        digits.erase(digits.begin());
+        comma -= 2;
+    }
+    while (other.digits[0] == 0 && other.comma >= 2) {
+        other.digits.erase(other.digits.begin());
+        other.comma -= 2;
+    }
+    if (comma > other.comma) {
+        k = other.comma;
+        while (comma != k) {
+            other.digits.insert(other.digits.begin(), 0);
+            k +=2 ;
+        }
+    }
+    else if (comma < other.comma) {
+        j = comma;
+        while (j != other.comma) {
+            digits.insert(digits.begin(), 0);
+            j +=2 ;
+        }
+    }
     if (other.digits[0] == 0 && other.digits.size() == 1)
         result.digits.push_back(15);
     else
-        result.digits = bcd_division(digits, other.digits, result.comma);
+        result.digits = bcd_division(digits, other.digits, result.comma, comma);
+    while (j > comma) {
+        digits.erase(digits.begin());
+        j -= 2 ;
+    }
+    while (k > other.comma) {
+        other.digits.erase(other.digits.begin());
+        k -= 2 ;
+    }
     reverse(result.digits.begin(), result.digits.end());
     if (sign == other.sign)
         result.sign = false;
