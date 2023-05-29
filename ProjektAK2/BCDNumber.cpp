@@ -355,7 +355,7 @@ vector<unsigned char> bcd_multiplication(vector<unsigned char>& vector1, vector<
             str.insert(str.begin(), z + '0');
         }
         for(int u = 0 ; u < (x*2);u++)
-        str.push_back('0');
+            str.push_back('0');
         BCDNumber temporary(str);
         str.clear();
         str.reserve(result1.size());
@@ -682,16 +682,24 @@ BCDNumber BCDNumber::operator*(BCDNumber& other) {
         digits.erase(digits.begin());
         comma -= 2;
     }
+    
     while (other.digits[0] == 0 && other.comma >= 2) {
         other.digits.erase(other.digits.begin());
         other.comma -= 2;
     }
-    result.digits = bcd_multiplication(digits, other.digits);
-    if (sign == other.sign)
+    if ((digits[0] == 0 && digits.size() == 1) || (other.digits[0] == 0 && other.digits.size() == 1)) {
+        result.digits.push_back(0);
         result.sign = false;
-    else
-        result.sign = true;
-    result.comma = comma + other.comma;
+        result.comma = 0;
+    }
+    else {
+        result.digits = bcd_multiplication(digits, other.digits);
+            if (sign == other.sign)
+                result.sign = false;
+            else
+                result.sign = true;
+            result.comma = comma + other.comma;
+    }
     return result;
     
 }
@@ -701,45 +709,48 @@ BCDNumber BCDNumber::operator/(BCDNumber& other) {
     result.comma = 0;
     unsigned long long j = 0;
     unsigned long long k = 0;
-    while (digits[0] == 0 && comma >= 2) {
-        digits.erase(digits.begin());
-        comma -= 2;
-    }
-    while (other.digits[0] == 0 && other.comma >= 2) {
-        other.digits.erase(other.digits.begin());
-        other.comma -= 2;
-    }
-    if (comma > other.comma) {
-        k = other.comma;
-        while (comma != k) {
-            other.digits.insert(other.digits.begin(), 0);
-            k +=2 ;
-        }
-    }
-    else if (comma < other.comma) {
-        j = comma;
-        while (j != other.comma) {
-            digits.insert(digits.begin(), 0);
-            j +=2 ;
-        }
-    }
     if (other.digits[0] == 0 && other.digits.size() == 1)
         result.digits.push_back(15);
-    else
+    else {
+        while (digits[0] == 0 && comma >= 2) {
+            digits.erase(digits.begin());
+            comma -= 2;
+        }
+        while (other.digits[0] == 0 && other.comma >= 2) {
+            other.digits.erase(other.digits.begin());
+            other.comma -= 2;
+        }
+        if (comma > other.comma) {
+            k = other.comma;
+            while (comma != k) {
+                other.digits.insert(other.digits.begin(), 0);
+                k += 2;
+            }
+        }
+        else if (comma < other.comma) {
+            j = comma;
+            while (j != other.comma) {
+                digits.insert(digits.begin(), 0);
+                j += 2;
+            }
+        }
+
+
         result.digits = bcd_division(digits, other.digits, result.comma, comma);
-    while (j > comma) {
-        digits.erase(digits.begin());
-        j -= 2 ;
+        while (j > comma) {
+            digits.erase(digits.begin());
+            j -= 2;
+        }
+        while (k > other.comma) {
+            other.digits.erase(other.digits.begin());
+            k -= 2;
+        }
+        reverse(result.digits.begin(), result.digits.end());
+        if (sign == other.sign)
+            result.sign = false;
+        else
+            result.sign = true;
     }
-    while (k > other.comma) {
-        other.digits.erase(other.digits.begin());
-        k -= 2 ;
-    }
-    reverse(result.digits.begin(), result.digits.end());
-    if (sign == other.sign)
-        result.sign = false;
-    else
-        result.sign = true;
     return result;
 }
 

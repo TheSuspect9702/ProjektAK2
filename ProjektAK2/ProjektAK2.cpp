@@ -4,7 +4,7 @@
 using namespace std;
 int main(int argc, char ** argv)
 {//                22              15              
-    string a, b; // digits[0] to koniec liczby 
+    string a, b,c,d; // digits[0] to koniec liczby 
     char opt = 1;
     BCDNumber num1;
     BCDNumber num2;
@@ -12,6 +12,7 @@ int main(int argc, char ** argv)
     BCDNumber substraction;
     BCDNumber multiplication;
     BCDNumber division;
+
     while (opt != '0') {
         cout << "\nProsze podac pierwsza liczbe: ";
         cin >> a;
